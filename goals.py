@@ -33,3 +33,11 @@ class OutOfLabyrinthGoal(Goal):
         elif self.game.turns >= self.less_than:
             self.achievable = False
         return False
+
+
+def random_goals():
+    return [
+        "obal kapitalistyczny rząd",
+        "zdaj niemiecki na co najmniej 3"
+        "przyjdz na poprawki z historii"
+    ]
