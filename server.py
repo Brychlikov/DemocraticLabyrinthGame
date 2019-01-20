@@ -5,6 +5,16 @@ import threading
 from queue import Queue
 
 import group
+import goals
+
+
+# def write_modified_utf8(string):
+#     utf8 = string.encode()
+#     l = len(utf8)
+#     result = struct.pack('!H', l)
+#     format = '!' + str(l) + 's'
+#     result += struct.pack(format, utf8)
+#     return resul
 
 
 class Server(threading.Thread):
@@ -30,9 +40,15 @@ class Server(threading.Thread):
             try:
                 received, addr = self.register_socket.recvfrom(256)
                 print("registration pending from ", addr)
+
                 new_name = received.decode('utf-8')
                 new_id = len(self.client_directions)
-                self.register_socket.sendto(struct.pack('>i', new_id), addr)
+
+                new_goals = goals.random_goals()
+                encoded_goals = "\n".join(new_goals).encode()
+                message = struct.pack(f'>i{len(encoded_goals)}s', new_id, encoded_goals)
+                print(message)
+                self.register_socket.sendto(message, addr)
                 print("registered name ", new_name)
 
                 new_player = group.Player(None, new_id, new_name)
@@ -66,7 +82,8 @@ class Server(threading.Thread):
 if __name__ == '__main__':
 
     q = Queue()
-    server = Server("0.0.0.0", 6666, 6665, q)
+    q2 = Queue()
+    server = Server("0.0.0.0", 6666, 6665, q, q2)
     server.start()
     while True:
         info = q.get()
