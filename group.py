@@ -1,4 +1,3 @@
-import game
 from queue import Queue
 import pygame
 from dataclasses import dataclass
@@ -8,6 +7,13 @@ from dataclasses import dataclass
 class Direction:
     x: int = 0
     y: int = 0
+
+    # Direction notations:
+    #               3 (0, -1)
+    #
+    # 2 (-1, 0)       None      0 (1, 0)
+    #
+    #               2 (0, 1)
 
     def as_single_int(self):
         if (self. x, self.y) == (0, 0):
@@ -39,15 +45,13 @@ class Player:
     def __init__(self, settings, id, name):
         self.settings = settings
 
+        # unique id used for communication with the server
         self.id = id
+        # non-unique user-selected name
         self.name = name
 
         self.goals = []
-        self.server = None
         self.direction = Direction()
-
-    def update_server_decision(self):
-        pass
 
 
 class Squad(pygame.sprite.Sprite):
@@ -59,8 +63,6 @@ class Squad(pygame.sprite.Sprite):
         self.player_list = []
 
         self.equipment = []
-        self._pos_x = None
-        self._pos_y = None
 
         self.direction = Direction()
         self.server_queue: Queue = None
@@ -68,6 +70,9 @@ class Squad(pygame.sprite.Sprite):
         self.image = pygame.Surface([self.settings.tile_size, self.settings.tile_size])
         self.image.fill((0, 255, 100))
         self.rect = self.image.get_rect()
+
+        self._pos_x = None
+        self._pos_y = None
 
         self.pos_x = 0
         self.pos_y = 0
