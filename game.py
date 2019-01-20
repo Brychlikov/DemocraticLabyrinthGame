@@ -16,22 +16,17 @@ class Settings:
     background_color: pygame.Color = pygame.Color(0, 0, 0, 0)
 
 
-class Board:
-    def __init__(self, settings):
-        self.board = []
-
-        for i in range(settings.width):
-            for j in range(settings.height):
-                self.board.append(tiles.Tile(settings, i, j))
-
-    def get_surface(self):
-        pass
 
 
 class Game:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.board = Board(settings)
+
+        self.board = []
+        for i in range(settings.width):
+            for j in range(settings.height):
+                self.board.append(tiles.Tile(settings, i, j))
+
         self.turns = 0
         self.labyrinth_finished = False
 
