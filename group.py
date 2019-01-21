@@ -51,7 +51,14 @@ class Player:
         self.name = name
 
         self.goals = []
+        self.achieved_goals = []
         self.direction = Direction()
+
+    def update_goals(self):
+        for i, g in enumerate(self.goals):
+            if g.update():
+                self.achieved_goals.append(g)
+                del self.goals[i]
 
 
 class Squad(pygame.sprite.Sprite):
@@ -62,7 +69,7 @@ class Squad(pygame.sprite.Sprite):
         self.settings = settings
         self.player_list = []
 
-        self.equipment = []
+        self.equipment = {}
 
         self.direction = Direction()
         self.server_queue: Queue = None
@@ -118,6 +125,9 @@ class Squad(pygame.sprite.Sprite):
             player.direction = Direction.from_single_int_direction(decisions[player.id])
 
     def update(self, *args):
+        for player in self.player_list:
+            player.update_goals()
+
         self.update_player_decisions()
         self.vote_direction()
 

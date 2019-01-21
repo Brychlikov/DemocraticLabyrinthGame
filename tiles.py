@@ -2,7 +2,6 @@ import pygame
 import game
 
 
-
 class Tile(pygame.sprite.Sprite):
 
     groups = []
@@ -53,10 +52,12 @@ class Treasure(Tile):
         super().__init__(settings, x, y)
 
         self.image = pygame.Surface((settings.tile_size, settings.tile_size))
-        self.image.fill((255, 50, 0))
+        self.image.fill((255, 255, 255))
 
-        self.rect = self.image.get_rect()
         self.name = name
 
-    def on_step(self,group):
-        group.equipment[self.name] += 1
+    def on_step(self, group):
+        if group.equipment.get(self.name):
+            group.equipment[self.name] += 1
+        else:
+            group.equipment[self.name] = 1

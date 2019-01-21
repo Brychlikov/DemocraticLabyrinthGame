@@ -44,9 +44,13 @@ class GetTreasureGoal(Goal):
         self.aim=amount
         self.name = name
 
+        self.description = f"znajdź {name} w liczbie {amount}"
+
     def update(self):
-        if self.game.squad.equipment[self.name]==self.aim:
+        if self.game.squad.equipment.get(self.name) == self.aim:
+            print(f"gracz {self.player.name} osiągnął cel zdobycia {self.name}")
             self.achieved = True
+            return True
         else:
             self.achievable = True
 
@@ -54,8 +58,9 @@ class GetTreasureGoal(Goal):
 class PandoraTreasureGoal(Goal):
     def __init__(self,name):
         super().__init__()
+
     def update(self):
-        if self.game.squad.equipment[name]==1:
+        if self.game.squad.equipment[name] == 1:
             self.achieved = False
         else:
             self.achievable = True

@@ -3,9 +3,11 @@ from dataclasses import dataclass
 from queue import Queue
 
 import group
+import goals
 import labgen
 import tiles
 import server
+import contentGen
 
 
 @dataclass
@@ -47,8 +49,14 @@ class Game:
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.squad)
 
+        self.content_gens = []
+        self.content_gens.append(contentGen.TreasureContentGen(settings))
         tiles.Tile.groups = self.all_sprites
-        self.board[2][5] = tiles.Treasure(settings, 5, 2, "Berło banankowych ptysiów")
+        for i in range(0, 30, 3):
+            t = self.content_gens[0].gen_tile()
+            t.pos_x = i
+            t.pos_y = i
+            self.board[i][i] = t
 
     def init(self):
         pygame.init()
@@ -75,13 +83,19 @@ class Game:
     def update_logic(self):
 
         if not self.new_player_queue.empty():
-            new_player = self.new_player_queue.get()
+            new_player: group.Player = self.new_player_queue.get()
+            new_player.goals.append(self.content_gens[0].gen_goal(new_player, self))
             self.squad.player_list.append(new_player)
 
         self.all_sprites.update()
         if self.frames_until_move == 0:
+
+            self.turns += 1
+
             self.squad.pos_x += self.squad.direction.x
             self.squad.pos_y += self.squad.direction.y
+
+            self.board[self.squad.pos_y][self.squad.pos_x].on_step(self.squad)
             self.frames_until_move = 120
 
         self.frames_until_move -= 1
