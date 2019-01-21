@@ -2,10 +2,13 @@ import pygame
 import game
 
 
+
 class Tile(pygame.sprite.Sprite):
 
+    groups = []
+
     def __init__(self, settings, x, y):
-        super().__init__()
+        super().__init__(Tile.groups)
 
         # global settings object
         self.settings: game.Settings = settings
@@ -43,3 +46,17 @@ class Tile(pygame.sprite.Sprite):
     def pos_y(self, value):
         self._pos_y = value
         self.rect.y = value * self.settings.tile_size
+
+
+class Treasure(Tile):
+    def __init__(self, settings, x, y, name):
+        super().__init__(settings, x, y)
+
+        self.image = pygame.Surface((settings.tile_size, settings.tile_size))
+        self.image.fill((255, 50, 0))
+
+        self.rect = self.image.get_rect()
+        self.name = name
+
+    def on_step(self,group):
+        group.equipment[self.name] += 1

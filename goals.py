@@ -1,16 +1,18 @@
-import game as game_module
+import game
 import group
 
 
 class Goal:
-    def __init__(self, player: group.Player, game: game_module.Game):
+    def __init__(self, player: group.Player, game_object):
         self.player = player
-        self.game = game
+        self.game: game.Game = game_object
         self.progress = 0
         self.aim = None
 
         self.achieved = False
         self.achievable = True
+
+        self.description = """To jest opis pustego celu. Nie powinieneś tego widzieć"""
 
     def update(self) -> bool:
         pass
@@ -35,9 +37,33 @@ class OutOfLabyrinthGoal(Goal):
         return False
 
 
+class GetTreasureGoal(Goal):
+    def __init__(self,player, game_object, name,amount):
+        super().__init__(player, game_object)
+
+        self.aim=amount
+        self.name = name
+
+    def update(self):
+        if self.game.squad.equipment[self.name]==self.aim:
+            self.achieved = True
+        else:
+            self.achievable = True
+
+
+class PandoraTreasureGoal(Goal):
+    def __init__(self,name):
+        super().__init__()
+    def update(self):
+        if self.game.squad.equipment[name]==1:
+            self.achieved = False
+        else:
+            self.achievable = True
+
+
 def random_goals():
     return [
         "obal kapitalistyczny rząd",
-        "zdaj niemiecki na co najmniej 3"
+        "zdaj niemiecki na co najmniej 3",
         "przyjdz na poprawki z historii"
     ]

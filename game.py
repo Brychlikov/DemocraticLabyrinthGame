@@ -24,8 +24,11 @@ class Game:
 
         self.board = []
         for i in range(settings.width):
+            row = []
             for j in range(settings.height):
-                self.board.append(tiles.Tile(settings, i, j))
+                row.append(tiles.Tile(settings, i, j))
+            self.board.append(row)
+
 
         self.turns = 0
         self.labyrinth_finished = False
@@ -43,6 +46,9 @@ class Game:
 
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.squad)
+
+        tiles.Tile.groups = self.all_sprites
+        self.board[2][5] = tiles.Treasure(settings, 5, 2, "Berło banankowych ptysiów")
 
     def init(self):
         pygame.init()
