@@ -1,3 +1,4 @@
+import game
 from queue import Queue
 import pygame
 from dataclasses import dataclass
@@ -7,13 +8,6 @@ from dataclasses import dataclass
 class Direction:
     x: int = 0
     y: int = 0
-
-    # Direction notations:
-    #               3 (0, -1)
-    #
-    # 2 (-1, 0)       None      0 (1, 0)
-    #
-    #               2 (0, 1)
 
     def as_single_int(self):
         if (self. x, self.y) == (0, 0):
@@ -45,20 +39,15 @@ class Player:
     def __init__(self, settings, id, name):
         self.settings = settings
 
-        # unique id used for communication with the server
         self.id = id
-        # non-unique user-selected name
         self.name = name
 
         self.goals = []
-        self.achieved_goals = []
+        self.server = None
         self.direction = Direction()
 
-    def update_goals(self):
-        for i, g in enumerate(self.goals):
-            if g.update():
-                self.achieved_goals.append(g)
-                del self.goals[i]
+    def update_server_decision(self):
+        pass
 
 
 class Squad(pygame.sprite.Sprite):
@@ -68,8 +57,13 @@ class Squad(pygame.sprite.Sprite):
 
         self.settings = settings
         self.player_list = []
+        self.monuments = []
 
-        self.equipment = {}
+        with open("treasurelist") as file:
+            tresure_list = file.read().split('\n')
+        self.equipment = {t: 0 for t in tresure_list}
+        self._pos_x = None
+        self._pos_y = None
 
         self.direction = Direction()
         self.server_queue: Queue = None
@@ -77,9 +71,6 @@ class Squad(pygame.sprite.Sprite):
         self.image = pygame.Surface([self.settings.tile_size, self.settings.tile_size])
         self.image.fill((0, 255, 100))
         self.rect = self.image.get_rect()
-
-        self._pos_x = None
-        self._pos_y = None
 
         self.pos_x = 0
         self.pos_y = 0
@@ -125,9 +116,6 @@ class Squad(pygame.sprite.Sprite):
             player.direction = Direction.from_single_int_direction(decisions[player.id])
 
     def update(self, *args):
-        for player in self.player_list:
-            player.update_goals()
-
         self.update_player_decisions()
         self.vote_direction()
 

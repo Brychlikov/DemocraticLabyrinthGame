@@ -1,18 +1,16 @@
-import game
+import game as game_module
 import group
 
 
 class Goal:
-    def __init__(self, player: group.Player, game_object):
+    def __init__(self, player: group.Player, game: game_module.Game):
         self.player = player
-        self.game: game.Game = game_object
+        self.game = game
         self.progress = 0
         self.aim = None
 
         self.achieved = False
         self.achievable = True
-
-        self.description = """To jest opis pustego celu. Nie powinieneś tego widzieć"""
 
     def update(self) -> bool:
         pass
@@ -21,7 +19,25 @@ class Goal:
         return self.progress, self.aim
 
 
-class OutOfLabyrinthGoal(Goal):
+class OutOfLabyrinthGoalMoreThan(Goal):
+    def __init__(self, player, game, more_than):
+        super().__init__(player, game)
+
+        self.aim = 1
+        self.more_than = more_than
+
+    def update(self):
+        if group.equipment['HomerBook'] == 1:
+            self.achieved = True
+        elif self.game.labyrinth_finished and self.game.turns > self.more_than:
+            self.achieved = True
+            return True
+        elif self.game.turns <= self.more_than:
+            self.achievable = False
+        return False
+
+
+class OutOfLabyrinthGoalLessThan(Goal):
     def __init__(self, player, game, less_than):
         super().__init__(player, game)
 
@@ -29,7 +45,9 @@ class OutOfLabyrinthGoal(Goal):
         self.less_than = less_than
 
     def update(self):
-        if self.game.labyrinth_finished and self.game.turns < self.less_than:
+        if group.equipment['NarcyzMirror'] == 1:
+            self.achieved = True
+        elif self.game.labyrinth_finished and self.game.turns < self.less_than:
             self.achieved = True
             return True
         elif self.game.turns >= self.less_than:
@@ -38,37 +56,38 @@ class OutOfLabyrinthGoal(Goal):
 
 
 class GetTreasureGoal(Goal):
-    def __init__(self,player, game_object, name,amount):
-        super().__init__(player, game_object)
-
-        self.aim=amount
+    def __init__(self, player, game, name, amount):
+        super().__init__(player, game)
         self.name = name
-
-        self.description = f"znajdź {name} w liczbie {amount}"
+        self.aim = amount
+        game.squad.equipment[name] = 0
 
     def update(self):
-        if self.game.squad.equipment.get(self.name) == self.aim:
-            print(f"gracz {self.player.name} osiągnął cel zdobycia {self.name}")
+        if group.equipment[self.name] == self.aim:
             self.achieved = True
-            return True
         else:
             self.achievable = True
 
 
 class PandoraTreasureGoal(Goal):
-    def __init__(self,name):
-        super().__init__()
+    def __init__(self, player, game):
+        super().__init__(player, game)
+
 
     def update(self):
-        if self.game.squad.equipment[name] == 1:
+        if group.equipment['PandoraBox'] == 1:
             self.achieved = False
         else:
             self.achievable = True
 
 
-def random_goals():
-    return [
-        "obal kapitalistyczny rząd",
-        "zdaj niemiecki na co najmniej 3",
-        "przyjdz na poprawki z historii"
-    ]
+class SeeAMonumentGoal (Goal):
+    def __init__(self, player, game, name):
+        super().__init__(player, game)
+        self.name = name
+
+    def update(self):
+        if self.name in group.monuments:
+            self.achieved = True
+
+
