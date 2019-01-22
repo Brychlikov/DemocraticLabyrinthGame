@@ -22,7 +22,10 @@ class Goal:
 class OutOfLabyrinthGoalMoreThan(Goal):
     def __init__(self, player, game, more_than):
         super().__init__(player, game)
-
+        self.description = f"Jesteś lingwistą (notabene słabo opłacanym). " \
+                           f"Szukasz w labiryncie materiałów do badań na starożytną greką. " \
+                           f"Zostań w labiryncie przez co najmniej {self.more_than} tur, " \
+                           f"aby przepisać inskrypcje ze ścian. Może przy okazji znajdziesz jakieś zapomniajne dzieło literackie?"
         self.aim = 1
         self.more_than = more_than
 
@@ -40,9 +43,10 @@ class OutOfLabyrinthGoalMoreThan(Goal):
 class OutOfLabyrinthGoalLessThan(Goal):
     def __init__(self, player, game, less_than):
         super().__init__(player, game)
-
         self.aim = 1
         self.less_than = less_than
+        self.description = f"Nie każdy jest idealny, niektórzy nie radzą sobie w szkole, " \
+                           f"inni nie mają przyjaciół, a ty masz klaustrofobię.  Wydostań się z labirynu w mniej niż {self.less_than} tur. "
 
     def update(self):
         if group.equipment['NarcyzMirror'] == 1:
