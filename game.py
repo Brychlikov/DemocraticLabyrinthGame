@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from queue import Queue
 
 import group
-import goals
 import labgen
 import tiles
 import server
