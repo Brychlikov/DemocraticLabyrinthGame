@@ -8,6 +8,26 @@ import labgen
 import tiles
 import server
 import contentGen
+import new_temp
+
+
+def wall_graph(wall_list):
+    result = {}
+
+    for wall in wall_list:
+        if wall.x1 - wall.x2 == 0: # vertical
+            coord1 = (wall.x1 - 1, wall.y1)
+            coord2 = wall.x1, wall.y2
+            if result.get(coord1):
+                result[coord1].append(coord2)
+            else:
+                result[coord1] = [coord2]
+            if result.get(coord2):
+                result[coord2].append(coord1)
+            else:
+                result[coord2] = [coord1]
+
+    return result
 
 
 @dataclass
@@ -58,6 +78,8 @@ class Game:
             t.pos_y = i
             self.board[i][i] = t
 
+        self.wall_list = new_temp.actually_gen_lab(settings.height)
+
     def init(self):
         pygame.init()
         resolution = (self.settings.width * self.settings.tile_size, self.settings.height * self.settings.tile_size)
@@ -71,6 +93,13 @@ class Game:
         self.server.start()
 
     def draw_frame(self):
+        # wall drawing
+
+        for wall in self.wall_list:
+            pygame.draw.line(self.display, (100, 0, 0),
+                             (wall.x1 * self.settings.tile_size, wall.y1 * self.settings.tile_size),
+                             (wall.y1 * self.settings.tile_size, wall.y2 * self.settings.tile_size), 3)
+
         self.display.fill(self.settings.background_color)
         self.all_sprites.draw(self.display)
         pygame.display.flip()
