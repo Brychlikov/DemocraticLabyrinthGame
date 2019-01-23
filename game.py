@@ -11,7 +11,6 @@ import labgen
 import tiles
 import server
 import contentGen
-import new_temp
 
 
 def wall_graph(wall_list):
@@ -79,7 +78,7 @@ class Game:
         for i in range(20):
             self.add_special_tile()
 
-        self.wall_list = new_temp.actually_gen_lab(settings.height)
+        self.wall_list = labgen.actually_gen_lab(settings.height)
         self.wall_graph = wall_graph(self.wall_list)
 
     def init(self):
