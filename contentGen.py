@@ -1,5 +1,8 @@
+import json
 import random
 import math
+
+import pygame
 
 import tiles
 import group
@@ -9,13 +12,26 @@ import game
 
 class TreasureContentGen:
 
-    def __init__(self, settings):
+    def __init__(self, settings, game_obj):
         self.settings = settings
-        self.name = str([random.choice('qwertyuiopasdfghjklzxcvbnm') for i in range(8)])
+
+        treasulrelist = json.load(open('treasurelist.json'))
+        # If the game currently has all the possible treasures it will freeze forever
+        # TODO fix it
+        while True:
+            self.treasure = random.choice(treasulrelist)
+            self.name = self.treasure["name"]
+            if not(self.name in game_obj.squad.equipment.keys()):
+                break
+        game_obj.squad.equipment[self.name] = 0
         self.tiles_generated = 0
 
     def gen_tile(self):
-        tile_obj = tiles.Treasure(self.settings, -1, -1, self.name)
+        try:
+            tile_obj = tiles.Treasure(self.settings, -1, -1, self.name, pygame.color.Color(self.treasure["color"]))
+        except ValueError as e:
+            print(self.treasure["color"])
+            raise e
         self.tiles_generated += 1
         return tile_obj
 

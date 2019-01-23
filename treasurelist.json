@@ -1,0 +1,33 @@
+[
+  {
+    "name": "HomerBook",
+    "friendly_name": "Zaginiona Księga Homera",
+    "color": "gold"
+  },
+  {
+    "name": "NarcyzMirror",
+    "friendly_name": "Lustro Narcyza",
+    "color": "gray"
+  },
+  {
+    "name": "AchillesHeel",
+    "friendly_name": "Pięta Achillesa w formalinie",
+    "color": "pink"
+  },
+  {
+    "name": "PolandKaduceusz",
+    "color": "violetred1"
+  },
+  {
+    "name": "IkarFeathers",
+    "color": "indianred1"
+  },
+  {
+    "name": "Cornucopia",
+    "color": "skyblue"
+  },
+  {
+    "name": "GoldenCarpet",
+    "color": "darkcyan"
+  }
+]

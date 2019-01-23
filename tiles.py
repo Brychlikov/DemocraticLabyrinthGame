@@ -3,12 +3,14 @@ import game
 
 
 class Tile(pygame.sprite.Sprite):
+    groups = []
 
     def __init__(self, settings, x, y):
-        super().__init__()
+        super().__init__(*Tile.groups)
 
         self.settings: game.Settings = settings
-        self.image = pygame.Surface((settings.tile_size, settings.tile_size))
+        self.image = pygame.Surface((settings.tile_size, settings.tile_size), pygame.SRCALPHA)
+        self.image.fill((0, 0, 0, 0))
         self.rect = self.image.get_rect()
 
         self._pos_x = None
@@ -38,14 +40,25 @@ class Tile(pygame.sprite.Sprite):
         self._pos_y = value
         self.rect.y = value * self.settings.tile_size
 
+    @property
+    def pos(self):
+        return self._pos_x, self._pos_y
+
+    @pos.setter
+    def pos(self, value):
+        self.pos_x, self.pos_y = value
+
 
 class Treasure(Tile):
-    def __init__(self, settings, x, y, name):
+    def __init__(self, settings, x, y, name, color=(255, 0, 0)):
         super().__init__(settings, x, y)
         self.name = name
 
+        pygame.draw.circle(self.image, color, (self.settings.tile_size // 2, self.settings.tile_size // 2), self.settings.tile_size//2)
+
     def on_step(self, group):
         group.equipment[self.name] += 1
+        return True
 
 
 class Monument(Tile):

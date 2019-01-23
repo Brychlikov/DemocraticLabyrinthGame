@@ -46,8 +46,10 @@ class Player:
         self.server = None
         self.direction = Direction()
 
-    def update_server_decision(self):
-        pass
+    def update_goals(self):
+        for i, g in enumerate(self.goals):
+            if g.update():
+                del self.goals[i]
 
 
 class Squad(pygame.sprite.Sprite):
@@ -59,9 +61,12 @@ class Squad(pygame.sprite.Sprite):
         self.player_list = []
         self.monuments = []
 
-        with open("treasurelist") as file:
-            tresure_list = file.read().split('\n')
-        self.equipment = {t: 0 for t in tresure_list}
+        self.equipment = {}
+        # This might be necessary, but initializing dict entries is hopefully handled by TreasureTileGen
+        # with open("treasurelist") as file:
+        #     tresure_list = file.read().split('\n')
+        # self.equipment = {t: 0 for t in tresure_list}
+
         self._pos_x = None
         self._pos_y = None
 
@@ -76,11 +81,19 @@ class Squad(pygame.sprite.Sprite):
         self.pos_y = 0
 
     @property
+    def pos(self):
+        return self._pos_x, self.pos_y
+
+    @property
     def pos_x(self):
         return self._pos_x
 
     @pos_x.setter
     def pos_x(self, value):
+        if value < 0:
+            value = 0
+        if value >= self.settings.width:
+            value = self.settings.width - 1
         self._pos_x = value
         self.rect.x = value * self.settings.tile_size
 
@@ -90,6 +103,10 @@ class Squad(pygame.sprite.Sprite):
 
     @pos_y.setter
     def pos_y(self, value):
+        if value < 0:
+            value = 0
+        if value >= self.settings.height:
+            value = self.settings.height - 1
         self._pos_y = value
         self.rect.y = value * self.settings.tile_size
 
@@ -116,6 +133,8 @@ class Squad(pygame.sprite.Sprite):
             player.direction = Direction.from_single_int_direction(decisions[player.id])
 
     def update(self, *args):
+        for player in self.player_list:
+            player.update_goals()
         self.update_player_decisions()
         self.vote_direction()
 

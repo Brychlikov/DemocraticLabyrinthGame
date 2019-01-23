@@ -4,15 +4,29 @@ import struct
 import threading
 from queue import Queue
 
+from loguru import logger
+
 import group
+import goals
+
+logger.debug("Server imported")
+
+# def write_modified_utf8(string):
+#     utf8 = string.encode()
+#     l = len(utf8)
+#     result = struct.pack('!H', l)
+#     format = '!' + str(l) + 's'
+#     result += struct.pack(format, utf8)
+#     return resul
 
 
 class Server(threading.Thread):
-    def __init__(self, ip, port, register_port, queue: Queue, player_queue: Queue):
+    def __init__(self, ip, port, register_port, queue: Queue, player_queue: Queue, goal_queue: Queue):
         super().__init__()
 
         self.queue = queue
         self.player_queue = player_queue
+        self.goal_queue = goal_queue
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.bind((ip, port))
@@ -26,17 +40,24 @@ class Server(threading.Thread):
         self.client_names = []
 
     def run(self):
+        logger.debug("Server thread started")
         while True:
             try:
                 received, addr = self.register_socket.recvfrom(256)
-                print("registration pending from ", addr)
+                logger.debug(f"registration pending from {addr}")
+
                 new_name = received.decode('utf-8')
                 new_id = len(self.client_directions)
-                self.register_socket.sendto(struct.pack('>i', new_id), addr)
-                print("registered name ", new_name)
-
                 new_player = group.Player(None, new_id, new_name)
                 self.player_queue.put(new_player)
+                logger.info(f"Registered new player with name {new_name} and id {new_id}")
+
+                new_goals = self.goal_queue.get()
+                logger.debug("New player data exchange finished")
+                encoded_goals = "\n".join(new_goals).encode()
+                message = struct.pack(f'>i{len(encoded_goals)}s', new_id, encoded_goals)
+                self.register_socket.sendto(message, addr)
+                logger.debug("Goals sent to client")
 
                 self.client_names.append(received.decode('utf-8'))
                 self.client_ips.append(addr[0])
@@ -48,8 +69,9 @@ class Server(threading.Thread):
             try:
                 received, addr = self.s.recvfrom(128)
                 id, direction = struct.unpack('>ii', received)
-                print("direction sent by", id, self.client_names[id])
+                logger.debug(f"Direction received. id: {id} direction: {direction}")
                 if id >= len(self.client_directions):
+                    logger.warning("Direction request from unknown id")
                     continue
                 self.client_directions[id] = direction
 
@@ -66,9 +88,10 @@ class Server(threading.Thread):
 if __name__ == '__main__':
 
     q = Queue()
-    server = Server("0.0.0.0", 6666, 6665, q)
+    q2 = Queue()
+    server = Server("0.0.0.0", 6666, 6665, q, q2)
     server.start()
     while True:
         info = q.get()
         print(info)
-        time.sleep(1)
+time.sleep(1)

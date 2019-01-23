@@ -3,14 +3,15 @@ import group
 
 
 class Goal:
-    def __init__(self, player: group.Player, game: game_module.Game):
-        self.player = player
-        self.game = game
+    def __init__(self, player, game):
+        self.player: group.Player = player
+        self.game: game_module.Game = game
         self.progress = 0
         self.aim = None
 
         self.achieved = False
         self.achievable = True
+        self.description = """To jest opis pustego celu. Nie powinieneś tego widzieć"""
 
     def update(self) -> bool:
         pass
@@ -30,7 +31,7 @@ class OutOfLabyrinthGoalMoreThan(Goal):
         self.more_than = more_than
 
     def update(self):
-        if group.equipment['HomerBook'] == 1:
+        if self.game.squad.equipment['HomerBook'] == 1:
             self.achieved = True
         elif self.game.labyrinth_finished and self.game.turns > self.more_than:
             self.achieved = True
@@ -49,7 +50,7 @@ class OutOfLabyrinthGoalLessThan(Goal):
                            f"inni nie mają przyjaciół, a ty masz klaustrofobię.  Wydostań się z labirynu w mniej niż {self.less_than} tur. "
 
     def update(self):
-        if group.equipment['NarcyzMirror'] == 1:
+        if self.game.squad.equipment['NarcyzMirror'] == 1:
             self.achieved = True
         elif self.game.labyrinth_finished and self.game.turns < self.less_than:
             self.achieved = True
@@ -65,10 +66,13 @@ class GetTreasureGoal(Goal):
         self.name = name
         self.aim = amount
         game.squad.equipment[name] = 0
+        self.description = f"znajdz {name} w liczbie {amount}"
 
     def update(self):
-        if group.equipment[self.name] == self.aim:
+        if self.game.squad.equipment[self.name] == self.aim:
+            print(f"gracz {self.player.name} znalazl odpowiednio duzo {self.name}")
             self.achieved = True
+            return  True
         else:
             self.achievable = True
 
