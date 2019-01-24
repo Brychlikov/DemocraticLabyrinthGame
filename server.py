@@ -39,6 +39,7 @@ class Server(threading.Thread):
         self.client_ips = []
         self.client_names = []
 
+    @logger.catch
     def run(self):
         logger.debug("Server thread started")
         while True:

@@ -3,7 +3,7 @@ import sys
 from loguru import logger
 
 logger.remove(0)
-logger.add(sys.stdout, level="WARNING")
+logger.add(sys.stdout, level="ERROR")
 
 from game import Game, Settings
 

@@ -41,6 +41,7 @@ class Settings:
     width: int
     height: int
     background_color: pygame.Color = pygame.Color(0, 0, 0, 0)
+    wall_color: pygame.Color = pygame.Color(0, 0, 255)
 
 
 class Game:
@@ -75,7 +76,7 @@ class Game:
         self.content_gens = [contentGen.TreasureContentGen(settings,  self) for i in range(6)]
         tiles.Tile.groups.append(self.all_sprites)
 
-        for i in range(20):
+        for i in range(40):
             self.add_special_tile()
 
         self.wall_list = labgen.actually_gen_lab(settings.height)
@@ -114,7 +115,7 @@ class Game:
         for wall in self.wall_list:
             point1 = (wall.x1 * self.settings.tile_size, wall.y1 * self.settings.tile_size)
             point2 = (wall.x2 * self.settings.tile_size, wall.y2 * self.settings.tile_size)
-            pygame.draw.line(self.display, (100, 0, 0), point1, point2)
+            pygame.draw.line(self.display, self.settings.wall_color, point1, point2, 3)
         self.all_sprites.draw(self.display)
         pygame.display.flip()
 
