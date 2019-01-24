@@ -7,27 +7,36 @@
   {
     "name": "NarcyzMirror",
     "friendly_name": "Lustro Narcyza",
-    "color": "gray"
+    "color": "gold"
   },
   {
     "name": "AchillesHeel",
     "friendly_name": "Pięta Achillesa w formalinie",
-    "color": "pink"
+    "color": "gold"
   },
   {
     "name": "PolandKaduceusz",
-    "color": "violetred1"
+    "friendly_name": "Kaduceusz Polski",
+    "color": "gold"
   },
   {
     "name": "IkarFeathers",
-    "color": "indianred1"
+    "friendly_name": "Pióra Ikara",
+    "color": "gold"
   },
   {
     "name": "Cornucopia",
-    "color": "skyblue"
+    "friendly_name": "Róg obfitości tabaki",
+    "color": "gold"
   },
   {
     "name": "GoldenCarpet",
-    "color": "darkcyan"
+    "friendly_name":  "Dywan ze złotego runa",
+    "color": "gold"
+  },
+  {
+    "name": "PandoraBox",
+    "friendly_name": "Puszka Agaty",
+    "color": "gold"
   }
 ]
