@@ -3,15 +3,14 @@ import group
 
 
 class Goal:
-    def __init__(self, player, game):
-        self.player: group.Player = player
-        self.game: game_module.Game = game
+    def __init__(self, player: group.Player, game: game_module.Game):
+        self.player = player
+        self.game = game
         self.progress = 0
         self.aim = None
 
         self.achieved = False
         self.achievable = True
-        self.description = """To jest opis pustego celu. Nie powinieneś tego widzieć"""
 
     def update(self) -> bool:
         pass
@@ -24,14 +23,15 @@ class OutOfLabyrinthGoalMoreThan(Goal):
     def __init__(self, player, game, more_than):
         super().__init__(player, game)
         self.description = f"Jesteś lingwistą (notabene słabo opłacanym). " \
-                           f"Szukasz w labiryncie materiałów do badań na starożytną greką. " \
+                           f"Szukasz w labiryncie materiałów do badań nad starożytną greką. " \
                            f"Zostań w labiryncie przez co najmniej {self.more_than} tur, " \
-                           f"aby przepisać inskrypcje ze ścian. Może przy okazji znajdziesz jakieś zapomniajne dzieło literackie?"
+                           f"aby przepisać inskrypcje ze ścian. " \
+                           f"Może przy okazji znajdziesz jakieś zapomniane dzieło literackie?"
         self.aim = 1
         self.more_than = more_than
 
     def update(self):
-        if self.game.squad.equipment['HomerBook'] == 1:
+        if group.equipment['HomerBook'] == 1:
             self.achieved = True
         elif self.game.labyrinth_finished and self.game.turns > self.more_than:
             self.achieved = True
@@ -47,10 +47,13 @@ class OutOfLabyrinthGoalLessThan(Goal):
         self.aim = 1
         self.less_than = less_than
         self.description = f"Nie każdy jest idealny, niektórzy nie radzą sobie w szkole, " \
-                           f"inni nie mają przyjaciół, a ty masz klaustrofobię.  Wydostań się z labirynu w mniej niż {self.less_than} tur. "
+                           f"inni nie mają przyjaciół, a ty masz klaustrofobię.  " \
+                           f"Wydostań się z labiryntu w mniej niż {self.less_than} tur," \
+                           f"zanim bedziesz musiał zmienić spodnie. " \
+                           f"Gdyby tylko ktoś zostawił tu gdzieś lustro, które daje iluzję przestrzeni! "
 
     def update(self):
-        if self.game.squad.equipment['NarcyzMirror'] == 1:
+        if group.equipment['NarcyzMirror'] == 1:
             self.achieved = True
         elif self.game.labyrinth_finished and self.game.turns < self.less_than:
             self.achieved = True
@@ -66,13 +69,13 @@ class GetTreasureGoal(Goal):
         self.name = name
         self.aim = amount
         game.squad.equipment[name] = 0
-        self.description = f"znajdz {name} w liczbie {amount}"
+        self.description = f"Ostatniej nocy przyśniła Ci się Afrodyta " \
+                           f"i po starej znajomości powiedziała Ci o czym marzy Twoja druga połówka." \
+                           f"Znajdź {name} a do końca życia będziecie szczęśliwi!"
 
     def update(self):
-        if self.game.squad.equipment[self.name] == self.aim:
-            print(f"gracz {self.player.name} znalazl odpowiednio duzo {self.name}")
+        if group.equipment[self.name] == self.aim:
             self.achieved = True
-            return  True
         else:
             self.achievable = True
 
@@ -80,7 +83,10 @@ class GetTreasureGoal(Goal):
 class PandoraTreasureGoal(Goal):
     def __init__(self, player, game):
         super().__init__(player, game)
-
+        self.descriptions = f"Jeśli myślisz, że twoje życie wypełnione jest porażkami," \
+                            f"świat jest dla ciebie okrutny i nie masz przyjaciół" \
+                            f"Pomyśl o ile gorzej Ci będzie jeśli znajdzieesz Puszkę Pandory." \
+                            f"Zaufaj mi, pod żadnym pozorem nie zbliżaj się do tej puszki!"
 
     def update(self):
         if group.equipment['PandoraBox'] == 1:
@@ -93,7 +99,9 @@ class SeeAMonumentGoal (Goal):
     def __init__(self, player, game, name):
         super().__init__(player, game)
         self.name = name
-
+        self.description = f"Po wielu rodzinnych kłótniach mamusia puśicła Cię " \
+                           f"na wycieczkę do labiryntu pod tym warunkiem, że wyślesz jej kilka zdjęć." \
+                           f"Jako dobre dziecko musisz odnaleźć {name} i strzelić sobie z nim samojebkę"
     def update(self):
         if self.name in group.monuments:
             self.achieved = True
