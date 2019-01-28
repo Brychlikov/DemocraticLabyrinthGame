@@ -158,8 +158,8 @@ def actually_gen_lab(lab_size):
     first = Chamber()
     first.upX = 0
     first.upY = 0
-    first.downX = lab_size + 2
-    first.downY = lab_size + 2
+    first.downX = lab_size
+    first.downY = lab_size
     width = lab_size
     height = lab_size
 
