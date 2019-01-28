@@ -1,6 +1,8 @@
 import random
+import numpy as np
 import threading
 import time
+from loguru import logger
 
 import pygame
 from dataclasses import dataclass
@@ -40,9 +42,14 @@ class Settings:
     tile_size: int
     width: int
     height: int
-    background_color: pygame.Color = pygame.Color(0, 0, 0, 0)
+    background_color: pygame.Color = pygame.Color(0, 0, 0)
     wall_color: pygame.Color = pygame.Color(0, 0, 255)
+    vision_radius: int = 150
     move_time: float = 1
+
+    @property
+    def resolution(self):
+        return self.width * self.tile_size, self.height * self.tile_size
 
 
 class Game:
@@ -63,6 +70,8 @@ class Game:
         self.last_move_timestamp = 0
 
         self.running = False
+
+        self.main_surf = pygame.Surface(self.settings.resolution, pygame.SRCALPHA)
         self.display: pygame.Surface = None
         self.clock = pygame.time.Clock()
         self.server = None
@@ -86,8 +95,7 @@ class Game:
 
     def init(self):
         pygame.init()
-        resolution = (self.settings.width * self.settings.tile_size, self.settings.height * self.settings.tile_size)
-        self.display = pygame.display.set_mode(resolution)
+        self.display = pygame.display.set_mode(self.settings.resolution)
         self.running = True
 
         self.server_queue = Queue()
@@ -110,15 +118,29 @@ class Game:
         t.pos = random.randrange(0, self.settings.width), random.randrange(0, self.settings.height)
         self.board[t.pos_y][t.pos_x] = t
 
-    def draw_frame(self):
-        self.display.fill(self.settings.background_color)
-        # wall drawing
+    def make_vision_mask(self):
+        result = pygame.Surface(self.settings.resolution, pygame.SRCALPHA)
+        result.fill((0, 0, 0, 0))
+        position = int((self.squad.pos_x + 0.5) * self.settings.tile_size), int((self.squad.pos_y + 0.5) * self.settings.tile_size)
+        pygame.draw.circle(result, (255, 255, 255, 255), position, self.settings.vision_radius)
+        return pygame.surfarray.array2d(result).astype(np.bool)
 
+    def draw_frame(self):
+        self.main_surf.fill(self.settings.background_color)
+
+        # wall drawing
         for wall in self.wall_list:
             point1 = (wall.x1 * self.settings.tile_size, wall.y1 * self.settings.tile_size)
             point2 = (wall.x2 * self.settings.tile_size, wall.y2 * self.settings.tile_size)
-            pygame.draw.line(self.display, self.settings.wall_color, point1, point2, 3)
-        self.all_sprites.draw(self.display)
+            pygame.draw.line(self.main_surf, self.settings.wall_color, point1, point2, 3)
+        self.all_sprites.draw(self.main_surf)
+
+        mask = self.make_vision_mask() == False
+        array_view = pygame.surfarray.pixels3d(self.main_surf)
+        array_view[mask] = np.array(self.settings.background_color)[:3]
+        del array_view
+
+        self.display.blit(self.main_surf, (0, 0))
         pygame.display.flip()
 
     def handle_events(self):
