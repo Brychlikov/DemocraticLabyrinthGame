@@ -42,6 +42,7 @@ class Settings:
     height: int
     background_color: pygame.Color = pygame.Color(0, 0, 0, 0)
     wall_color: pygame.Color = pygame.Color(0, 0, 255)
+    move_time: float = 1
 
 
 class Game:
@@ -59,6 +60,7 @@ class Game:
         self.labyrinth_finished = False
 
         self.frames_until_move = 0
+        self.last_move_timestamp = 0
 
         self.running = False
         self.display: pygame.Surface = None
@@ -68,7 +70,7 @@ class Game:
         self.new_player_queue = None
         self.goal_queue = None
 
-        self.squad = group.Squad(settings)
+        self.squad = group.Squad(settings, self)
 
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.squad)
@@ -140,24 +142,6 @@ class Game:
                 time.sleep(0.001)
 
         self.all_sprites.update()
-        if self.frames_until_move == 0:
-
-            self.turns += 1
-
-            dest = (self.squad.pos_x + self.squad.direction.x, self.squad.pos_y + self.squad.direction.y)
-            collision = bool(self.wall_graph.get(self.squad.pos)) and dest in self.wall_graph.get(self.squad.pos)
-            if not collision:
-                self.squad.pos_x += self.squad.direction.x
-                self.squad.pos_y += self.squad.direction.y
-
-                consumed = self.board[self.squad.pos_y][self.squad.pos_x].on_step(self.squad)
-                if consumed:
-                    self.board[self.squad.pos_y][self.squad.pos_x].kill()
-                    self.board[self.squad.pos_y][self.squad.pos_x] = tiles.Tile(self.settings,
-                                                                                self.squad.pos_x, self.squad.pos_y)
-            self.frames_until_move = 60
-
-        self.frames_until_move -= 1
 
     def loop(self):
         while self.running:
@@ -166,4 +150,5 @@ class Game:
             self.draw_frame()
             self.clock.tick(60)
 
+        self.server.halt = True
         pygame.quit()

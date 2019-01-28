@@ -2,6 +2,8 @@ import game
 from queue import Queue
 import pygame
 from dataclasses import dataclass
+import tiles
+import time
 
 
 @dataclass
@@ -54,10 +56,11 @@ class Player:
 
 class Squad(pygame.sprite.Sprite):
 
-    def __init__(self, settings):
+    def __init__(self, settings, game_obj):
         super().__init__()
 
         self.settings = settings
+        self.game: game.Game = game_obj
         self.player_list = []
         self.monuments = []
 
@@ -138,20 +141,15 @@ class Squad(pygame.sprite.Sprite):
         self.update_player_decisions()
         self.vote_direction()
 
+        if time.time() - self.game.last_move_timestamp > self.settings.move_time:
+            dest = (self.pos_x + self.direction.x, self.pos_y + self.direction.y)
+            collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
+            if not collision:
+                self.pos_x += self.direction.x
+                self.pos_y += self.direction.y
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                consumed = self.game.board[self.pos_y][self.pos_x].on_step(self)
+                if consumed:
+                    self.game.board[self.pos_y][self.pos_x].kill()
+                    self.game.board[self.pos_y][self.pos_x] = tiles.Tile(self.settings, self.pos_x, self.pos_y)
+            self.game.last_move_timestamp = time.time()

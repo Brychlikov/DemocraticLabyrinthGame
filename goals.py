@@ -1,11 +1,11 @@
-import game as game_module
+import game
 import group
 
 
 class Goal:
-    def __init__(self, player: group.Player, game: game_module.Game):
+    def __init__(self, player: group.Player, game_obj):
         self.player = player
-        self.game = game
+        self.game: game.Game = game_obj
         self.progress = 0
         self.aim = None
 

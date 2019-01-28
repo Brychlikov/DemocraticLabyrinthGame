@@ -32,6 +32,8 @@ class Server(threading.Thread):
         self.s.bind((ip, port))
         self.s.setblocking(False)
 
+        self.halt = False
+
         self.register_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.register_socket.bind((ip, register_port))
         self.register_socket.setblocking(False)
@@ -43,6 +45,9 @@ class Server(threading.Thread):
     def run(self):
         logger.debug("Server thread started")
         while True:
+            if self.halt:
+                logger.debug("Server got termination signal")
+                break
             try:
                 received, addr = self.register_socket.recvfrom(256)
                 logger.debug(f"registration pending from {addr}")
