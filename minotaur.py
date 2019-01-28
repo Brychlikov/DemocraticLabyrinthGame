@@ -55,12 +55,13 @@ class Minotaur(pygame.sprite.Sprite):
             self.pos_y += random_destination.y
 
 
-settings = game.Settings(20, 30, 30)
+if __name__ == "__main__":
+    settings = game.Settings(20, 30, 30)
 
-minotaur = Minotaur(settings)
+    minotaur = Minotaur(settings)
 
-minotaur.pos_x = random.randrange(0, settings.width)
-minotaur.pos_y = random.randrange(0, settings.height)
+    minotaur.pos_x = random.randrange(0, settings.width)
+    minotaur.pos_y = random.randrange(0, settings.height)
 
 
 
