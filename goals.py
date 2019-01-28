@@ -31,7 +31,7 @@ class OutOfLabyrinthGoalMoreThan(Goal):
         self.more_than = more_than
 
     def update(self):
-        if group.equipment['HomerBook'] == 1:
+        if self.game.squad.equipment['HomerBook'] == 1:
             self.achieved = True
         elif self.game.labyrinth_finished and self.game.turns > self.more_than:
             self.achieved = True
@@ -74,7 +74,7 @@ class GetTreasureGoal(Goal):
                            f"Znajdź {name} a do końca życia będziecie szczęśliwi!"
 
     def update(self):
-        if group.equipment[self.name] == self.aim:
+        if self.game.squad.equipment[self.name] == self.aim:
             self.achieved = True
         else:
             self.achievable = True
@@ -89,7 +89,7 @@ class PandoraTreasureGoal(Goal):
                             f"Zaufaj mi, pod żadnym pozorem nie zbliżaj się do tej puszki!"
 
     def update(self):
-        if group.equipment['PandoraBox'] == 1:
+        if self.game.squad.equipment['PandoraBox'] == 1:
             self.achieved = False
         else:
             self.achievable = True
@@ -103,7 +103,7 @@ class SeeAMonumentGoal (Goal):
                            f"na wycieczkę do labiryntu pod tym warunkiem, że wyślesz jej kilka zdjęć." \
                            f"Jako dobre dziecko musisz odnaleźć {name} i strzelić sobie z nim samojebkę"
     def update(self):
-        if self.name in group.monuments:
+        if self.name in self.game.squad.monuments:
             self.achieved = True
 
 
