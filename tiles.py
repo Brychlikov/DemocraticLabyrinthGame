@@ -1,4 +1,5 @@
 import pygame
+from loguru import logger
 import game
 
 
@@ -59,6 +60,15 @@ class Treasure(Tile):
     def on_step(self, group):
         group.equipment[self.name] += 1
         return True
+
+
+class LabExit(Tile):
+    def __init__(self, settings, x, y):
+        super().__init__(settings, x, y)
+
+    def on_step(self, group):
+        logger.debug("Labyrinth finished")
+        group.game.labyrinth_finished = True
 
 
 class Monument(Tile):
