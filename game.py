@@ -13,6 +13,7 @@ import labgen
 import tiles
 import server
 import contentGen
+from imgutils import make_background
 
 
 def wall_graph(wall_list):
@@ -42,8 +43,8 @@ class Settings:
     tile_size: int
     width: int
     height: int
-    background_color: pygame.Color = pygame.Color(0, 0, 0)
-    wall_color: pygame.Color = pygame.Color(0, 0, 255)
+    background_color: pygame.Color = pygame.Color(0, 0, 1)
+    wall_color: pygame.Color = pygame.Color(255, 255, 255)
     vision_radius: int = 150
     move_time: float = 1
 
@@ -71,7 +72,9 @@ class Game:
 
         self.running = False
 
-        self.main_surf = pygame.Surface(self.settings.resolution, pygame.SRCALPHA)
+        self.main_surf = pygame.Surface(self.settings.resolution)
+        self.main_surf.set_colorkey(self.settings.background_color)
+        self.background = make_background(pygame.image.load("assets/tiledark.png"), self.settings.resolution)
         self.display: pygame.Surface = None
         self.clock = pygame.time.Clock()
         self.server = None
@@ -90,7 +93,12 @@ class Game:
         for i in range(40):
             self.add_special_tile()
 
-        self.wall_list = labgen.actually_gen_lab(settings.height)
+        self.wall_list, entrance_wall, exit_wall = labgen.actually_gen_lab(settings.height)
+        self.squad.pos = entrance_wall.x1, entrance_wall.y1
+
+        exit_tile = tiles.LabExit(self.settings, exit_wall.x1 - 1, exit_wall.y1)
+        self.board[exit_wall.y1][exit_wall.x1 - 1] = exit_tile
+
         self.wall_graph = wall_graph(self.wall_list)
 
     def init(self):
@@ -140,6 +148,7 @@ class Game:
         array_view[mask] = np.array(self.settings.background_color)[:3]
         del array_view
 
+        self.display.blit(self.background, (0, 0))
         self.display.blit(self.main_surf, (0, 0))
         pygame.display.flip()
 

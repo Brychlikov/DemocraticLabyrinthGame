@@ -76,8 +76,8 @@ class Squad(pygame.sprite.Sprite):
         self.direction = Direction()
         self.server_queue: Queue = None
 
-        self.image = pygame.Surface([self.settings.tile_size, self.settings.tile_size])
-        self.image.fill((0, 255, 100))
+        unscaled = pygame.image.load("assets/adventurer.png")
+        self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
         self.rect = self.image.get_rect()
 
         self.pos_x = 0
@@ -86,6 +86,10 @@ class Squad(pygame.sprite.Sprite):
     @property
     def pos(self):
         return self._pos_x, self.pos_y
+
+    @pos.setter
+    def pos(self, value):
+        self.pos_x, self.pos_y = value
 
     @property
     def pos_x(self):

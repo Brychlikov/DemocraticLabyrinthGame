@@ -34,7 +34,7 @@ while not done:
             done = True
 
     display.fill((0, 0, 0))
-    wall_list = actually_gen_lab(10)
+    wall_list, _, _ = actually_gen_lab(10)
     for w in wall_list:
         if SHOW_DEPTH:
             pygame.draw.line(display, COLORS[w.depth], (w.x1 * tile_size, w.y1 * tile_size), (w.x2 * tile_size, w.y2 * tile_size), 5)
