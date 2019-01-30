@@ -76,8 +76,9 @@ class Squad(pygame.sprite.Sprite):
         self.direction = Direction()
         self.server_queue: Queue = None
 
-        unscaled = pygame.image.load("assets/adventurer.png")
+        unscaled = pygame.image.load("assets/adventurer.png").convert_alpha()
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
+        self.image.set_colorkey(settings.background_color)
         self.rect = self.image.get_rect()
 
         self.pos_x = 0

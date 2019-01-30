@@ -16,6 +16,7 @@ import contentGen
 from imgutils import make_background
 
 
+
 def wall_graph(wall_list):
     result = {}
 
@@ -43,8 +44,8 @@ class Settings:
     tile_size: int
     width: int
     height: int
-    background_color: pygame.Color = pygame.Color(0, 0, 1)
-    wall_color: pygame.Color = pygame.Color(255, 255, 255)
+    background_color: pygame.Color = pygame.Color(1, 255, 1)
+    wall_color: pygame.Color = pygame.Color(55, 255, 255)
     vision_radius: int = 150
     move_time: float = 1
 
@@ -76,6 +77,13 @@ class Game:
         self.main_surf.set_colorkey(self.settings.background_color)
         self.background = make_background(pygame.image.load("assets/tiledark.png"), self.settings.resolution)
         self.display: pygame.Surface = None
+
+        # TODO do something with it
+        # maybe separate init() is useless?
+        pygame.init()
+        self.display = pygame.display.set_mode(self.settings.resolution)
+        self.display.set_colorkey(self.settings.background_color)
+
         self.clock = pygame.time.Clock()
         self.server = None
         self.server_queue = None
@@ -90,7 +98,7 @@ class Game:
         self.content_gens = [contentGen.TreasureContentGen(settings,  self) for i in range(6)]
         tiles.Tile.groups.append(self.all_sprites)
 
-        for i in range(40):
+        for i in range(10):
             self.add_special_tile()
 
         self.wall_list, entrance_wall, exit_wall = labgen.actually_gen_lab(settings.height)
@@ -102,8 +110,6 @@ class Game:
         self.wall_graph = wall_graph(self.wall_list)
 
     def init(self):
-        pygame.init()
-        self.display = pygame.display.set_mode(self.settings.resolution)
         self.running = True
 
         self.server_queue = Queue()
@@ -112,6 +118,8 @@ class Game:
         self.squad.server_queue = self.server_queue
         self.server = server.Server("0.0.0.0", 6666, 6665, self.server_queue, self.new_player_queue, self.goal_queue)
         self.server.start()
+        self.wall_horizontal = pygame.image.load("assets/wall_horizontal.png").convert_alpha()
+        self.wall_vertical = pygame.image.load("assets/wall_vertical.png").convert_alpha()
 
     def add_special_tile(self):
         for gen in self.content_gens:
@@ -138,9 +146,15 @@ class Game:
 
         # wall drawing
         for wall in self.wall_list:
-            point1 = (wall.x1 * self.settings.tile_size, wall.y1 * self.settings.tile_size)
-            point2 = (wall.x2 * self.settings.tile_size, wall.y2 * self.settings.tile_size)
-            pygame.draw.line(self.main_surf, self.settings.wall_color, point1, point2, 3)
+            point1 = (wall.x1 * self.settings.tile_size-2, wall.y1 * self.settings.tile_size - 2)
+            if wall.y1 == wall.y2:
+                self.main_surf.blit(self.wall_horizontal, point1)
+        for wall in self.wall_list:
+            point1 = (wall.x1 * self.settings.tile_size-2, wall.y1 * self.settings.tile_size - 2)
+            if wall.x1 == wall.x2:
+                self.main_surf.blit(self.wall_vertical, point1)
+
+            # pygame.draw.line(self.main_surf, self.settings.wall_color, point1, point2, 3)
         self.all_sprites.draw(self.main_surf)
 
         mask = self.make_vision_mask() == False
