@@ -51,11 +51,11 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Treasure(Tile):
-    def __init__(self, settings, x, y, name, color=(255, 0, 0)):
+    def __init__(self, settings, x, y, name):
         super().__init__(settings, x, y)
         self.name = name
 
-        pygame.draw.circle(self.image, color, (self.settings.tile_size // 2, self.settings.tile_size // 2), self.settings.tile_size//2)
+        self.image = pygame.image.load("assets/treasure.png").convert_alpha()
 
     def on_step(self, group):
         group.equipment[self.name] += 1

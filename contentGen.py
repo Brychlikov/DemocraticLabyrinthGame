@@ -28,7 +28,7 @@ class TreasureContentGen:
 
     def gen_tile(self):
         try:
-            tile_obj = tiles.Treasure(self.settings, -1, -1, self.name, pygame.color.Color(self.treasure["color"]))
+            tile_obj = tiles.Treasure(self.settings, -1, -1, self.name)
         except ValueError as e:
             print(self.treasure["color"])
             raise e

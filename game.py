@@ -142,7 +142,7 @@ class Game:
         return pygame.surfarray.array2d(result).astype(np.bool)
 
     def draw_frame(self):
-        self.main_surf.fill(self.settings.background_color)
+        self.main_surf.blit(self.background, (0, 0))
 
         # wall drawing
         for wall in self.wall_list:
@@ -162,7 +162,6 @@ class Game:
         array_view[mask] = np.array(self.settings.background_color)[:3]
         del array_view
 
-        self.display.blit(self.background, (0, 0))
         self.display.blit(self.main_surf, (0, 0))
         pygame.display.flip()
 
