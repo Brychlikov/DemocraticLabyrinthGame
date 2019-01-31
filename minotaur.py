@@ -1,3 +1,5 @@
+import time
+
 import pygame
 import random
 import game
@@ -12,8 +14,7 @@ class Minotaur(pygame.sprite.Sprite):
 
         self.game: game.Game = game_obj
         self.settings: game.Settings = settings
-        self.image = pygame.Surface((settings.tile_size, settings.tile_size), pygame.SRCALPHA)
-        self.image.fill((0, 0, 0, 0))
+        self.image = pygame.transform.scale2x(pygame.image.load("assets/Minotaur.png").convert_alpha())
         self.rect = self.image.get_rect()
 
         self._pos_x = None
@@ -46,13 +47,14 @@ class Minotaur(pygame.sprite.Sprite):
         self.pos_x, self.pos_y = value
 
     def update(self):
-        self.game.wall_graph.get(self.pos)
-        random_destination = group.Direction.from_single_int_direction(random.randint(0, 3))
-        dest = (self.pos_x + random_destination.x, self.pos_y + random_destination.y)
-        collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
-        if not collision:
-            self.pos_x += random_destination.x
-            self.pos_y += random_destination.y
+        if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
+            random_destination = group.Direction.from_single_int_direction(random.randint(0, 3))
+            dest = (self.pos_x + random_destination.x, self.pos_y + random_destination.y)
+            collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
+            if not collision:
+                self.pos_x += random_destination.x
+                self.pos_y += random_destination.y
+            self.game.last_minotaur_move = time.time()
 
 
 if __name__ == "__main__":

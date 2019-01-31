@@ -14,7 +14,7 @@ from game import Game, Settings
 
 if __name__ == '__main__':
 
-    settings = Settings(30, 20, 20, move_time=0.3, vision_radius=200)
+    settings = Settings(30, 20, 20, move_time=1, vision_radius=600)
     game = Game(settings)
     game.init()
     try:

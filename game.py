@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from queue import Queue
 
 import group
+import minotaur
 import labgen
 import tiles
 import server
@@ -69,7 +70,8 @@ class Game:
         self.labyrinth_finished = False
 
         self.frames_until_move = 0
-        self.last_move_timestamp = 0
+        self.last_player_move = time.time()
+        self.last_minotaur_move = time.time() + self.settings.move_time
 
         self.running = False
 
@@ -91,9 +93,12 @@ class Game:
         self.goal_queue = None
 
         self.squad = group.Squad(settings, self)
+        self.minotaur = minotaur.Minotaur(settings, self)
+        self.minotaur.pos = (15, 15)
 
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.squad)
+        self.all_sprites.add(self.minotaur)
 
         self.content_gens = [contentGen.TreasureContentGen(settings,  self) for i in range(6)]
         tiles.Tile.groups.append(self.all_sprites)

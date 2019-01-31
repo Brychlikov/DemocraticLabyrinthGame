@@ -146,7 +146,7 @@ class Squad(pygame.sprite.Sprite):
         self.update_player_decisions()
         self.vote_direction()
 
-        if time.time() - self.game.last_move_timestamp > self.settings.move_time:
+        if time.time() - self.game.last_minotaur_move > self.settings.move_time and self.game.last_minotaur_move > self.game.last_player_move:
             dest = (self.pos_x + self.direction.x, self.pos_y + self.direction.y)
             collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
             if not collision:
@@ -157,4 +157,4 @@ class Squad(pygame.sprite.Sprite):
                 if consumed:
                     self.game.board[self.pos_y][self.pos_x].kill()
                     self.game.board[self.pos_y][self.pos_x] = tiles.Tile(self.settings, self.pos_x, self.pos_y)
-            self.game.last_move_timestamp = time.time()
+            self.game.last_player_move = time.time()
