@@ -55,7 +55,8 @@ class Treasure(Tile):
         super().__init__(settings, x, y)
         self.name = name
 
-        self.image = pygame.image.load("assets/treasure.png").convert_alpha()
+        unscaled = pygame.image.load("assets/treasure.png").convert_alpha()
+        self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
 
     def on_step(self, group):
         group.equipment[self.name] += 1

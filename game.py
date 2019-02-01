@@ -123,8 +123,10 @@ class Game:
         self.squad.server_queue = self.server_queue
         self.server = server.Server("0.0.0.0", 6666, 6665, self.server_queue, self.new_player_queue, self.goal_queue)
         self.server.start()
-        self.wall_horizontal = pygame.image.load("assets/wall_horizontal.png").convert_alpha()
-        self.wall_vertical = pygame.image.load("assets/wall_vertical.png").convert_alpha()
+        unscaled = pygame.image.load("assets/wall_horizontal.png").convert_alpha()
+        self.wall_horizontal = pygame.transform.scale(unscaled, (self.settings.tile_size * 7 // 6, self.settings.tile_size))
+        unscaled = pygame.image.load("assets/wall_vertical.png").convert_alpha()
+        self.wall_vertical = pygame.transform.scale(unscaled, (self.settings.tile_size // 6, self.settings.tile_size))
 
     def add_special_tile(self):
         for gen in self.content_gens:
@@ -161,6 +163,7 @@ class Game:
 
             # pygame.draw.line(self.main_surf, self.settings.wall_color, point1, point2, 3)
         self.all_sprites.draw(self.main_surf)
+        self.squad.make_decision_arrows(self.main_surf)
 
         mask = self.make_vision_mask() == False
         array_view = pygame.surfarray.pixels3d(self.main_surf)

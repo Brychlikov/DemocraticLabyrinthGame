@@ -14,7 +14,8 @@ class Minotaur(pygame.sprite.Sprite):
 
         self.game: game.Game = game_obj
         self.settings: game.Settings = settings
-        self.image = pygame.transform.scale2x(pygame.image.load("assets/Minotaur.png").convert_alpha())
+        unscaled = pygame.image.load("assets/Minotaur.png").convert_alpha()
+        self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
         self.rect = self.image.get_rect()
 
         self._pos_x = None

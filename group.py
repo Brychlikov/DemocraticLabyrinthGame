@@ -1,3 +1,5 @@
+import random
+
 import game
 from queue import Queue
 import pygame
@@ -48,6 +50,8 @@ class Player:
         self.server = None
         self.direction = Direction()
 
+        self.color = pygame.Color(*[random.randint(0, 255) for i in range(3)])
+
     def update_goals(self):
         for i, g in enumerate(self.goals):
             if g.update():
@@ -79,7 +83,7 @@ class Squad(pygame.sprite.Sprite):
         unscaled = pygame.image.load("assets/adventurer.png").convert_alpha()
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
         self.image.set_colorkey(settings.background_color)
-        self.rect = self.image.get_rect()
+        self.rect: pygame.Rect = self.image.get_rect()
 
         self.pos_x = 0
         self.pos_y = 0
@@ -139,6 +143,58 @@ class Squad(pygame.sprite.Sprite):
         decisions = self.server_queue.get()
         for player in self.player_list:
             player.direction = Direction.from_single_int_direction(decisions[player.id])
+
+    def make_decision_arrows(self, surf: pygame.Surface):
+        def draw_arrow(start, end, color):
+            pygame.draw.line(surf, color, start, end, self.settings.tile_size // 15)
+
+        going_right_colors = []
+        going_down_colors = []
+        going_left_colors = []
+        going_up_colors = []
+
+        for player in self.player_list:
+            if player.direction.as_single_int() == 0:
+                going_right_colors.append(player.color)
+            elif player.direction.as_single_int() == 1:
+                going_down_colors.append(player.color)
+            elif player.direction.as_single_int() == 2:
+                going_left_colors.append(player.color)
+            elif player.direction.as_single_int() == 3:
+                going_up_colors.append(player.color)
+
+        mid_x, mid_y = self.rect.center
+        if going_right_colors:
+            spacing = min(self.settings.tile_size // 6, self.settings.tile_size // len(going_right_colors))
+            begin_y = mid_y - (spacing * len(going_right_colors) / 2)
+            for i, color in enumerate(going_right_colors):
+                start_x, _ = self.rect.midright
+                start_y = begin_y + i * spacing
+                draw_arrow((start_x, start_y), (start_x + self.settings.tile_size, start_y), color)
+
+        if going_down_colors:
+            spacing = min(5, self.settings.tile_size // len(going_down_colors))
+            begin_x = mid_x - (spacing * len(going_down_colors) / 2)
+            for i, color in enumerate(going_down_colors):
+                _, start_y = self.rect.midbottom
+                start_x = begin_x + i * spacing
+                draw_arrow((start_x, start_y), (start_x, start_y + self.settings.tile_size), color)
+
+        if going_left_colors:
+            spacing = min(5, self.settings.tile_size // len(going_left_colors))
+            begin_y = mid_y - (spacing * len(going_left_colors) / 2)
+            for i, color in enumerate(going_left_colors):
+                start_x, _ = self.rect.midleft
+                start_y = begin_y + i * spacing
+                draw_arrow((start_x, start_y), (start_x + self.settings.tile_size, start_y), color)
+
+        if going_up_colors:
+            spacing = min(5, self.settings.tile_size // len(going_up_colors))
+            begin_x = mid_x - (spacing * len(going_up_colors) / 2)
+            for i, color in enumerate(going_up_colors):
+                _, start_y = self.rect.midtop
+                start_x = begin_x + i * spacing
+                draw_arrow((start_x, start_y), (start_x, start_y - self.settings.tile_size), color)
 
     def update(self, *args):
         for player in self.player_list:
