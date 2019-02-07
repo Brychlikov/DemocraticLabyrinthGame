@@ -22,12 +22,13 @@ def neighbours(x, y, settings):
 
 def non_retarded_wall_graph(wall_graph, settings):
     result = {}
-    for x, y in zip(range(settings.width), range(settings.height)):
-        result[(x, y)] = []
-        for n in neighbours(x, y, settings):
-            if wall_graph.get((x, y)) and n in wall_graph[(x, y)]:
-                continue
-            result[(x, y)].append(n)
+    for x in range(settings.width):
+        for y in range(settings.height):
+            result[(x, y)] = []
+            for n in neighbours(x, y, settings):
+                if wall_graph.get((x, y)) and n in wall_graph[(x, y)]:
+                    continue
+                result[(x, y)].append(n)
     return result
 
 
@@ -76,8 +77,8 @@ class Minotaur(pygame.sprite.Sprite):
         if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
             possible = self.game.nrwg[self.pos]
             dest = random.choice(possible)
-            self.pos_x += dest[0]
-            self.pos_y += dest[1]
+            self.pos_x = dest[0]
+            self.pos_y = dest[1]
             self.game.last_minotaur_move = time.time()
 
 
