@@ -5,6 +5,7 @@ import pygame
 import random
 import game
 import group
+from collections import deque
 
 
 def neighbours(x, y, settings):
@@ -74,12 +75,35 @@ class Minotaur(pygame.sprite.Sprite):
         self.pos_x, self.pos_y = value
 
     def update(self):
-        if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
-            possible = self.game.nrwg[self.pos]
-            dest = random.choice(possible)
-            self.pos_x = dest[0]
-            self.pos_y = dest[1]
-            self.game.last_minotaur_move = time.time()
+        if not abs(self.pos_x - self.game.squad.pos_x) <= 6 and abs(self.pos_y - self.game.squad.pos_y) <= 6:
+            if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
+                possible = self.game.nrwg[self.pos]
+                dest = random.choice(possible)
+                self.pos_x = dest[0]
+                self.pos_y = dest[1]
+                self.game.last_minotaur_move = time.time()
+        else:
+            queue = deque
+            queue.appendleft(self.pos)
+            result = list
+            came_from = []
+            visited = set(self.pos)
+            reached_end = False
+            while queue.size() > 0:
+                node = queue.popleft()
+                if node == self.self.game.squad.pos:
+                    reached_end = True
+                    break
+                for n in self.group.nrwg[node]:
+                    came_from[n] = node
+                    if n not in visited:
+                        visited.add(n)
+                        queue.append(n)
+            next_node = came_from[self.game.squad.pos]
+            while next_node != self.pos:
+                result.insert(0, next_node)
+                next_node = next_node = came_from[next_node]
+            self.pos = result[0]
 
 
 if __name__ == "__main__":
