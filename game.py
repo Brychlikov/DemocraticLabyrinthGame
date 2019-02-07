@@ -100,7 +100,6 @@ class Game:
 
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.squad)
-        self.all_sprites.add(self.minotaur)
 
         self.trap_gen = contentGen.TrapContentGen(settings, self)
         self.content_gens: List[contentGen.ContentGen] = [contentGen.TreasureContentGen(settings,  self) for i in range(3)]
@@ -117,6 +116,7 @@ class Game:
         exit_tile = tiles.LabExit(self.settings, exit_wall.x1 - 1, exit_wall.y1)
         self.board[exit_wall.y1][exit_wall.x1 - 1] = exit_tile
 
+        self.all_sprites.add(self.minotaur)
         self.wall_graph = wall_graph(self.wall_list)
 
     def init(self):
