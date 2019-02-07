@@ -22,12 +22,13 @@ def neighbours(x, y, settings):
 
 def non_retarded_wall_graph(wall_graph, settings):
     result = {}
-    for x, y in zip(range(settings.width), range(settings.height)):
-        result[(x, y)] = []
-        for n in neighbours(x, y, settings):
-            if wall_graph.get((x, y)) and n in wall_graph[(x, y)]:
-                continue
-            result[(x, y)].append(n)
+    for x in range(settings.width):
+        for y in range(settings.height):
+            result[(x, y)] = []
+            for n in neighbours(x, y, settings):
+                if wall_graph.get((x, y)) and n in wall_graph[(x, y)]:
+                    continue
+                result[(x, y)].append(n)
     return result
 
 
@@ -74,14 +75,10 @@ class Minotaur(pygame.sprite.Sprite):
 
     def update(self):
         if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
-            random_destination = group.Direction.from_single_int_direction(random.randint(0, 3))
-            dest = (self.pos_x + random_destination.x, self.pos_y + random_destination.y)
-            collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
-            if not collision:
-                self.pos_x += random_destination.x
-                self.pos_y += random_destination.y
-            else:
-                logger.warning("Minotaur hit a wall")
+            possible = self.game.nrwg[self.pos]
+            dest = random.choice(possible)
+            self.pos_x = dest[0]
+            self.pos_y = dest[1]
             self.game.last_minotaur_move = time.time()
 
 
