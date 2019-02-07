@@ -28,7 +28,7 @@ def non_retarded_wall_graph(wall_graph, settings):
             if wall_graph.get((x, y)) and n in wall_graph[(x, y)]:
                 continue
             result[(x, y)].append(n)
-    return wall_graph
+    return result
 
 
 class Minotaur(pygame.sprite.Sprite):
