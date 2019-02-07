@@ -81,7 +81,7 @@ class Minotaur(pygame.sprite.Sprite):
                 self.pos_x += random_destination.x
                 self.pos_y += random_destination.y
             else:
-                logger.debug("Minotaur hit a wall")
+                logger.warning("Minotaur hit a wall")
             self.game.last_minotaur_move = time.time()
 
 
