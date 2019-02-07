@@ -47,6 +47,8 @@ class Minotaur(pygame.sprite.Sprite):
 
         self._pos_x = None
         self._pos_y = None
+        self.ticks = 0
+        self.ticks_timer = False
 
     @property
     def pos_x(self):
@@ -75,37 +77,44 @@ class Minotaur(pygame.sprite.Sprite):
         self.pos_x, self.pos_y = value
 
     def update(self):
-        if not (abs(self.pos_x - self.game.squad.pos_x) <= 30 and abs(self.pos_y - self.game.squad.pos_y) <= 30):
-            if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
-                possible = self.game.nrwg[self.pos]
-                dest = random.choice(possible)
-                self.pos_x = dest[0]
-                self.pos_y = dest[1]
-                self.game.last_minotaur_move = time.time()
-        else:
-            logger.debug("Minotaur pursuit started")
-            queue = deque()
-            queue.appendleft(self.pos)
-            result = list()
-            came_from = {}
-            visited = set()
-            visited.add(self.pos)
-            reached_end = False
-            while True:
-                node = queue.popleft()
-                if node == self.game.squad.pos:
-                    reached_end = True
-                    break
-                for n in self.game.nrwg[node]:
-                    if n not in visited:
-                        came_from[n] = node
-                        visited.add(n)
-                        queue.append(n)
-            next_node = came_from[self.game.squad.pos]
-            while next_node != self.pos:
-                result.insert(0, next_node)
-                next_node = next_node = came_from[next_node]
-            self.pos = result[0]
+        if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
+            if (abs(self.pos_x - self.game.squad.pos_x) > 6 and abs(self.pos_y - self.game.squad.pos_y) > 6) or self.ticks_timer == True:
+                logger.debug("SEARCHING")
+                self.ticks += 1
+                if self.ticks > 15:
+                    self.ticks = 0
+                    self.ticks_timer = False
+                if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
+                    possible = self.game.nrwg[self.pos]
+                    dest = random.choice(possible)
+                    self.pos_x = dest[0]
+                    self.pos_y = dest[1]
+                    self.game.last_minotaur_move = time.time()
+            else:
+                logger.debug("CHASING")
+                self.ticks += 1
+                if self.ticks > 15:
+                    self.ticks = 0
+                    self.ticks_timer = True
+                queue = deque()
+                queue.appendleft(self.pos)
+                result = []
+                came_from = []
+                visited = set(self.pos)
+                while len(queue) > 0:
+                    node = queue.popleft()
+                    if node == self.game.squad.pos:
+                        break
+                    for n in self.group.nrwg[node]:
+                        if n not in visited:
+                            visited.add(n)
+                            queue.append(n)
+                            came_from[n] = node
+                next_node = came_from[self.game.squad.pos]
+                while next_node != self.pos:
+                    result.insert(0, next_node)
+                    next_node = came_from[next_node]
+                self.pos = result[0]
 
         if self.pos == self.game.squad.pos:
             if self.group.power / len(self.game.squad.player_list) > 5:
