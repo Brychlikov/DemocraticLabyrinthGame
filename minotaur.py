@@ -105,7 +105,7 @@ class Minotaur(pygame.sprite.Sprite):
                     node = queue.popleft()
                     if node == self.game.squad.pos:
                         break
-                    for n in self.group.nrwg[node]:
+                    for n in self.game.nrwg[node]:
                         if n not in visited:
                             visited.add(n)
                             queue.append(n)
