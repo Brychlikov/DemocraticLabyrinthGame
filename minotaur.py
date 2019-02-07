@@ -79,6 +79,7 @@ class Minotaur(pygame.sprite.Sprite):
     def update(self):
         if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
             if (abs(self.pos_x - self.game.squad.pos_x) > 6 and abs(self.pos_y - self.game.squad.pos_y) > 6) or self.ticks_timer == True:
+                logger.debug("SEARCHING")
                 self.ticks += 1
                 if self.ticks > 15:
                     self.ticks = 0
@@ -90,6 +91,7 @@ class Minotaur(pygame.sprite.Sprite):
                     self.pos_y = dest[1]
                     self.game.last_minotaur_move = time.time()
             else:
+                logger.debug("CHASING")
                 self.ticks += 1
                 if self.ticks > 15:
                     self.ticks = 0
