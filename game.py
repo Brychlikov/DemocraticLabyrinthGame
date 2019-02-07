@@ -119,6 +119,8 @@ class Game:
         self.all_sprites.add(self.minotaur)
         self.wall_graph = wall_graph(self.wall_list)
 
+        self.nrwg = minotaur.non_retarded_wall_graph(self.wall_graph, settings)
+
     def init(self):
         self.running = True
 
