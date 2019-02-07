@@ -1,4 +1,5 @@
 import game
+from loguru import logger
 import group
 
 
@@ -46,6 +47,8 @@ class OutOfLabyrinthGoalMoreThan(Goal):
     def update(self):
         if self.game.squad.equipment['HomerBook'] == 1:
             self.achieved = True
+            logger.info()
+            return True
         elif self.game.labyrinth_finished and self.game.turns > self.more_than:
             self.achieved = True
             return True

@@ -18,8 +18,8 @@ import contentGen
 from imgutils import make_background
 
 
-
 def wall_graph(wall_list):
+    """returns a graph where keys are  coordinates and values are coordinates of FORBIDDEN movements"""
     result = {}
 
     for wall in wall_list:

@@ -1,9 +1,34 @@
 import time
+from loguru import logger
 
 import pygame
 import random
 import game
 import group
+
+
+def neighbours(x, y, settings):
+    result = set()
+    if x - 1 >= 0:
+        result.add((x-1, y))
+    if x + 1 < settings.width:
+        result.add((x + 1, y))
+    if y - 1 >= 0:
+        result.add((x, y-1))
+    if y + 1 < settings.height:
+        result.add((x, y + 1))
+    return result
+
+
+def non_retarded_wall_graph(wall_graph, settings):
+    result = {}
+    for x, y in zip(range(settings.width), range(settings.height)):
+        result[(x, y)] = []
+        for n in neighbours(x, y, settings):
+            if wall_graph.get((x, y)) and n in wall_graph[(x, y)]:
+                continue
+            result[(x, y)].append(n)
+    return wall_graph
 
 
 class Minotaur(pygame.sprite.Sprite):
@@ -55,6 +80,8 @@ class Minotaur(pygame.sprite.Sprite):
             if not collision:
                 self.pos_x += random_destination.x
                 self.pos_y += random_destination.y
+            else:
+                logger.debug("Minotaur hit a wall")
             self.game.last_minotaur_move = time.time()
 
 
