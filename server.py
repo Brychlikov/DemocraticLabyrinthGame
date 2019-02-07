@@ -1,3 +1,4 @@
+import json
 import socket
 import time
 import struct
@@ -21,12 +22,13 @@ logger.debug("Server imported")
 
 
 class Server(threading.Thread):
-    def __init__(self, ip, port, register_port, queue: Queue, player_queue: Queue, goal_queue: Queue):
+    def __init__(self, ip, port, register_port, queue: Queue, player_queue: Queue, goal_queue: Queue, info_queue: Queue):
         super().__init__()
 
         self.queue = queue
         self.player_queue = player_queue
         self.goal_queue = goal_queue
+        self.info_queue = info_queue
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.bind((ip, port))
@@ -38,7 +40,7 @@ class Server(threading.Thread):
         self.register_socket.bind((ip, register_port))
         self.register_socket.setblocking(False)
         self.client_directions = []
-        self.client_ips = []
+        self.client_adresses = []
         self.client_names = []
 
     @logger.catch
@@ -66,7 +68,7 @@ class Server(threading.Thread):
                 logger.debug("Goals sent to client")
 
                 self.client_names.append(received.decode('utf-8'))
-                self.client_ips.append(addr[0])
+                self.client_adresses.append(addr)
                 self.client_directions.append(None)
 
             except BlockingIOError:
@@ -86,8 +88,15 @@ class Server(threading.Thread):
 
             while not self.queue.empty():
                 _ = self.queue.get()
-
             self.queue.put(self.client_directions)
+
+            if not self.info_queue.empty():
+                data = self.info_queue.get()
+                for player in data:
+                    player_address = self.client_adresses[player["id"]]
+                    json.dump(player, open("example_dump.json", "w"))
+                    to_send = json.dumps(player).encode()
+                    self.s.sendto(to_send, (player_address[0], 5554))
             time.sleep(0.001)
 
 

@@ -3,6 +3,7 @@ import numpy as np
 import threading
 import time
 from loguru import logger
+from typing import List
 
 import pygame
 from dataclasses import dataclass
@@ -91,6 +92,7 @@ class Game:
         self.server_queue = None
         self.new_player_queue = None
         self.goal_queue = None
+        self.info_queue = None
 
         self.squad = group.Squad(settings, self)
         self.minotaur = minotaur.Minotaur(settings, self)
@@ -100,10 +102,13 @@ class Game:
         self.all_sprites.add(self.squad)
         self.all_sprites.add(self.minotaur)
 
-        self.content_gens = [contentGen.TreasureContentGen(settings,  self) for i in range(6)]
+        self.trap_gen = contentGen.TrapContentGen(settings, self)
+        self.content_gens: List[contentGen.ContentGen] = [contentGen.TreasureContentGen(settings,  self) for i in range(3)]
+        self.content_gens.append(self.trap_gen)
+        self.content_gens.append(contentGen.OutOfLabirynthContentGen(settings, self))
         tiles.Tile.groups.append(self.all_sprites)
 
-        for i in range(10):
+        for i in range(100):
             self.add_special_tile()
 
         self.wall_list, entrance_wall, exit_wall = labgen.actually_gen_lab(settings.height)
@@ -120,8 +125,9 @@ class Game:
         self.server_queue = Queue()
         self.new_player_queue = Queue()
         self.goal_queue = Queue()
+        self.info_queue = Queue()
         self.squad.server_queue = self.server_queue
-        self.server = server.Server("0.0.0.0", 6666, 6665, self.server_queue, self.new_player_queue, self.goal_queue)
+        self.server = server.Server("0.0.0.0", 6666, 6665, self.server_queue, self.new_player_queue, self.goal_queue, self.info_queue)
         self.server.start()
         unscaled = pygame.image.load("assets/wall_horizontal.png").convert_alpha()
         self.wall_horizontal = pygame.transform.scale(unscaled, (self.settings.tile_size * 7 // 6, self.settings.tile_size))
@@ -129,14 +135,15 @@ class Game:
         self.wall_vertical = pygame.transform.scale(unscaled, (self.settings.tile_size // 6, self.settings.tile_size))
 
     def add_special_tile(self):
-        for gen in self.content_gens:
+        gen_list = [g for g in self.content_gens if g.generates_tiles]
+        for gen in gen_list:
             if gen.tiles_generated == 0:
                 t = gen.gen_tile()
                 t.pos = random.randrange(0, self.settings.width), random.randrange(0, self.settings.height)
                 self.board[t.pos_y][t.pos_x] = t
                 return
 
-        gen = random.choice(self.content_gens)
+        gen = random.choice(gen_list)
         t = gen.gen_tile()
         t.pos = random.randrange(0, self.settings.width), random.randrange(0, self.settings.height)
         self.board[t.pos_y][t.pos_x] = t
@@ -183,17 +190,23 @@ class Game:
         if not self.new_player_queue.empty():
             new_player: group.Player = self.new_player_queue.get()
             goal_str_list = []
-            gen_list = random.sample(self.content_gens, 3)
+            gen_list = random.sample([cg for cg in self.content_gens if cg.generates_goals], 3)
             for gen in gen_list:
-                goal = gen.gen_goal(new_player, self)
+                goal = gen.gen_goal(new_player)
                 goal_str_list.append(goal.description)
                 new_player.goals.append(goal)
+                new_player.squad = self.squad
             self.goal_queue.put(goal_str_list)
+            # Handle trap knowledge
+            known_traps = random.sample(self.trap_gen.traps_generated, self.trap_gen.tiles_generated // 10)
+            for t in known_traps:
+                t.add_aware_player(new_player)
             self.squad.player_list.append(new_player)
             while not self.goal_queue.empty():
                 time.sleep(0.001)
 
         self.all_sprites.update()
+        self.info_queue.put([p.to_dict() for p in self.squad.player_list])
 
     def loop(self):
         while self.running:

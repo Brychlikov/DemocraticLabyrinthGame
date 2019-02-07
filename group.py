@@ -24,6 +24,15 @@ PLAYER_COLORS = [
     (255, 255, 255),
     (0, 0, 0)
 ]
+random.shuffle(PLAYER_COLORS)
+
+
+def color_to_hex(color: pygame.Color):
+    result = "#"
+    result += hex(color.r)[2:].capitalize()
+    result += hex(color.g)[2:].capitalize()
+    result += hex(color.b)[2:].capitalize()
+    return result
 
 
 @dataclass
@@ -64,16 +73,45 @@ class Player:
         self.id = id
         self.name = name
 
+        self.squad = None
+
         self.goals = []
-        self.server = None
+        self.knows_about = []
         self.direction = Direction()
 
-        self.color = pygame.Color(*[random.randint(0, 255) for i in range(3)])
+        self.color = pygame.Color(*PLAYER_COLORS[id])
 
     def update_goals(self):
         for i, g in enumerate(self.goals):
             if g.update():
                 del self.goals[i]
+
+    def prepare_trap_minotaur_info(self):
+        result = []
+        p_pos_x, p_pos_y = self.squad.pos
+        for trap in self.knows_about:
+            horizontal_dif = p_pos_x - trap.pos_x
+            vertical_dif = p_pos_y - trap.pos_y
+            if 5 > abs(horizontal_dif) <= abs(vertical_dif):
+                if horizontal_dif > 0:
+                    result.append({"type": "trap", "pos": "right"})
+                else:
+                    result.append({"type": "trap", "pos": "left"})
+            elif abs(vertical_dif < 5):
+                if vertical_dif > 0:
+                    result.append({"type": "trap", "pos": "up"})
+                else:
+                    result.append({"type": "trap", "pos": "down"})
+        return result
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "color": color_to_hex(self.color),
+            "goals": [g.to_dict() for g in self.goals],
+            "id": self.id,
+            "pos_info": self.prepare_trap_minotaur_info()
+        }
 
 
 class Squad(pygame.sprite.Sprite):
@@ -204,7 +242,7 @@ class Squad(pygame.sprite.Sprite):
             for i, color in enumerate(going_left_colors):
                 start_x, _ = self.rect.midleft
                 start_y = begin_y + i * spacing
-                draw_arrow((start_x, start_y), (start_x + self.settings.tile_size, start_y), color)
+                draw_arrow((start_x, start_y), (start_x - self.settings.tile_size, start_y), color)
 
         if going_up_colors:
             spacing = min(5, self.settings.tile_size // len(going_up_colors))
@@ -221,6 +259,7 @@ class Squad(pygame.sprite.Sprite):
         self.vote_direction()
 
         if time.time() - self.game.last_minotaur_move > self.settings.move_time and self.game.last_minotaur_move > self.game.last_player_move:
+            self.game.last_player_move = time.time()
             dest = (self.pos_x + self.direction.x, self.pos_y + self.direction.y)
             collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
             if not collision:
@@ -231,4 +270,3 @@ class Squad(pygame.sprite.Sprite):
                 if consumed:
                     self.game.board[self.pos_y][self.pos_x].kill()
                     self.game.board[self.pos_y][self.pos_x] = tiles.Tile(self.settings, self.pos_x, self.pos_y)
-            self.game.last_player_move = time.time()

@@ -1,4 +1,5 @@
 import pygame
+import time
 from loguru import logger
 import game
 
@@ -61,6 +62,25 @@ class Treasure(Tile):
     def on_step(self, group):
         group.equipment[self.name] += 1
         return True
+
+
+class TrapTile(Tile):
+    def __init__(self, settings, x, y):
+        super().__init__(settings, x, y)
+
+        self.players_knowing = []
+
+    def add_aware_player(self, player):
+        player.knows_about.append(self)
+
+
+class StunTrap(TrapTile):
+    def __init__(self, settings, x, y):
+        super().__init__(settings, x, y)
+
+    def on_step(self, group):
+        logger.debug("Stepped on a stun trap")
+        group.game.last_player_move = time.time() + 10
 
 
 class LabExit(Tile):
