@@ -48,14 +48,14 @@ def build_lab(chamber, width, height, current_depth, max_depth):
         for i in range(chamber.downX):
             new_outer_wall = Wall()
             new_outer_wall.x1 = i
-            new_outer_wall.x1 = i + 1
+            new_outer_wall.x2 = i + 1
             new_outer_wall.y1 = 0
             new_outer_wall.y2 = 0
             result.append(new_outer_wall)
         for i in range(chamber.downX):
             new_outer_wall = Wall()
             new_outer_wall.x1 = i
-            new_outer_wall.x1 = i + 1
+            new_outer_wall.x2 = i + 1
             new_outer_wall.y1 = chamber.downX
             new_outer_wall.y2 = chamber.downX
             result.append(new_outer_wall)

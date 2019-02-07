@@ -78,7 +78,7 @@ class Game:
 
         self.main_surf = pygame.Surface(self.settings.resolution)
         self.main_surf.set_colorkey(self.settings.background_color)
-        self.background = make_background(pygame.image.load("assets/tiledark.png"), self.settings.resolution)
+        self.background = make_background(pygame.image.load("assets/tile.png"), self.settings.resolution)
         self.display: pygame.Surface = None
 
         # TODO do something with it
