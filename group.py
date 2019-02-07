@@ -79,6 +79,8 @@ class Player:
         self.knows_about = []
         self.direction = Direction()
 
+        self.power = 0
+
         self.color = pygame.Color(*PLAYER_COLORS[id])
 
     def update_goals(self):
@@ -119,6 +121,8 @@ class Squad(pygame.sprite.Sprite):
     def __init__(self, settings, game_obj):
         super().__init__()
 
+        self.dead = False
+
         self.settings = settings
         self.game: game.Game = game_obj
         self.player_list = []
@@ -140,6 +144,7 @@ class Squad(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
         self.image.set_colorkey(settings.background_color)
         self.rect: pygame.Rect = self.image.get_rect()
+        self.stunned = 0
 
         self.pos_x = 0
         self.pos_y = 0
@@ -177,6 +182,10 @@ class Squad(pygame.sprite.Sprite):
             value = self.settings.height - 1
         self._pos_y = value
         self.rect.y = value * self.settings.tile_size
+
+    @property
+    def power(self):
+        return sum((p.power for p in self.player_list))
 
     def vote_direction(self):
         results = [0, 0, 0, 0]
@@ -260,6 +269,10 @@ class Squad(pygame.sprite.Sprite):
 
         if time.time() - self.game.last_minotaur_move > self.settings.move_time and self.game.last_minotaur_move > self.game.last_player_move:
             self.game.last_player_move = time.time()
+            self.game.turns += 1
+            if self.stunned:
+                self.stunned -= 1
+                return
             dest = (self.pos_x + self.direction.x, self.pos_y + self.direction.y)
             collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
             if not collision:

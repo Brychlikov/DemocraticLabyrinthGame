@@ -75,7 +75,7 @@ class Minotaur(pygame.sprite.Sprite):
         self.pos_x, self.pos_y = value
 
     def update(self):
-        if not abs(self.pos_x - self.game.squad.pos_x) <= 6 and abs(self.pos_y - self.game.squad.pos_y) <= 6:
+        if not (abs(self.pos_x - self.game.squad.pos_x) <= 30 and abs(self.pos_y - self.game.squad.pos_y) <= 30):
             if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
                 possible = self.game.nrwg[self.pos]
                 dest = random.choice(possible)
@@ -83,20 +83,22 @@ class Minotaur(pygame.sprite.Sprite):
                 self.pos_y = dest[1]
                 self.game.last_minotaur_move = time.time()
         else:
-            queue = deque
+            logger.debug("Minotaur pursuit started")
+            queue = deque()
             queue.appendleft(self.pos)
-            result = list
-            came_from = []
-            visited = set(self.pos)
+            result = list()
+            came_from = {}
+            visited = set()
+            visited.add(self.pos)
             reached_end = False
-            while queue.size() > 0:
+            while True:
                 node = queue.popleft()
-                if node == self.self.game.squad.pos:
+                if node == self.game.squad.pos:
                     reached_end = True
                     break
-                for n in self.group.nrwg[node]:
-                    came_from[n] = node
+                for n in self.game.nrwg[node]:
                     if n not in visited:
+                        came_from[n] = node
                         visited.add(n)
                         queue.append(n)
             next_node = came_from[self.game.squad.pos]
@@ -104,6 +106,11 @@ class Minotaur(pygame.sprite.Sprite):
                 result.insert(0, next_node)
                 next_node = next_node = came_from[next_node]
             self.pos = result[0]
+
+        if self.pos == self.game.squad.pos:
+            if self.group.power / len(self.game.squad.player_list) > 5:
+                self.kill()
+            self.game.squad.dead = True
 
 
 if __name__ == "__main__":

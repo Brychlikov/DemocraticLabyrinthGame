@@ -80,7 +80,8 @@ class StunTrap(TrapTile):
 
     def on_step(self, group):
         logger.debug("Stepped on a stun trap")
-        group.game.last_player_move = time.time() + 10
+        group.stunned += 5
+        return True
 
 
 class LabExit(Tile):

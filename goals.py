@@ -126,3 +126,25 @@ class SeeAMonumentGoal (Goal):
             self.achieved = True
 
 
+class KillMinotaurGoal(Goal):
+    def __init__(self, player, game_obj):
+        super(KillMinotaurGoal, self).__init__(player, game_obj)
+        self.short_desc = f"Zabij minotaura"
+        self.description = f"Zabij minotaura"
+
+    def update(self):
+        if not self.game.minotaur.alive():
+            self.achieved = True
+            return True
+
+
+class DieByMinotaurGoal(Goal):
+    def __init__(self, player, game_object):
+        super(DieByMinotaurGoal, self).__init__(player, game_object)
+        self.short_desc = f"Zgiń z rąk minoraura"
+        self.description = f"Zgiń z rąk minoraura"
+
+    def update(self):
+        if self.game.squad.dead:
+            self.achieved = True
+            return True

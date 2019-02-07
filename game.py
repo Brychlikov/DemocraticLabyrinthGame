@@ -210,6 +210,16 @@ class Game:
         self.all_sprites.update()
         self.info_queue.put([p.to_dict() for p in self.squad.player_list])
 
+        if self.squad.dead or self.labyrinth_finished:
+            self.running = False
+
+    def make_leader_board(self):
+        result = []
+        for p in self.squad.player_list:
+            result.append((p, sum((g.progress / g.aim for g in p.goals))))
+        sorted(result, key=lambda i: i[1])
+        return result
+
     def loop(self):
         while self.running:
             self.handle_events()
@@ -219,3 +229,5 @@ class Game:
 
         self.server.halt = True
         pygame.quit()
+        for i, record in enumerate(self.make_leader_board()):
+            print(f"{i}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
