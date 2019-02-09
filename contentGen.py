@@ -58,6 +58,8 @@ class TreasureContentGen(ContentGen):
 
 
 class TrapContentGen(ContentGen):
+    possible_traps = [tiles.StunTrap, tiles.VisionTrap]
+
     def __init__(self, settings, game_obj):
         super().__init__(settings, game_obj)
         self.generates_tiles = True
@@ -65,7 +67,8 @@ class TrapContentGen(ContentGen):
         self.traps_generated = []
 
     def gen_tile(self):
-        tile_obj = tiles.StunTrap(self.settings, -1, -1)
+        chosen_trap = random.choice(TrapContentGen.possible_traps)
+        tile_obj = chosen_trap(self.settings, -1, -1)
         self.traps_generated.append(tile_obj)
         self.tiles_generated += 1
         return tile_obj
@@ -83,3 +86,14 @@ class OutOfLabirynthContentGen(ContentGen):
         else:
             goal_obj = goals.OutOfLabyrinthGoalMoreThan(player, self.game, 100)
             return goal_obj
+
+
+class WeaponContentGen(ContentGen):
+    def __init__(self, settings, game_obj):
+        super(WeaponContentGen, self).__init__(settings, game_obj)
+        self.generates_tiles = True
+
+    def gen_tile(self):
+        tile_obj = tiles.Weapon(self.settings, -1, -1)
+        self.tiles_generated += 1
+        return tile_obj

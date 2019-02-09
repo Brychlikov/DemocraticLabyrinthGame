@@ -78,18 +78,17 @@ class Minotaur(pygame.sprite.Sprite):
 
     def update(self):
         if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
-            if (abs(self.pos_x - self.game.squad.pos_x) > 6 and abs(self.pos_y - self.game.squad.pos_y) > 6) or self.ticks_timer == True:
+            self.game.last_minotaur_move = time.time()
+            if (abs(self.pos_x - self.game.squad.pos_x) > 30 and abs(self.pos_y - self.game.squad.pos_y) > 30) or self.ticks_timer == True:
                 logger.debug("SEARCHING")
                 self.ticks += 1
                 if self.ticks > 15:
                     self.ticks = 0
                     self.ticks_timer = False
-                if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
-                    possible = self.game.nrwg[self.pos]
-                    dest = random.choice(possible)
-                    self.pos_x = dest[0]
-                    self.pos_y = dest[1]
-                    self.game.last_minotaur_move = time.time()
+                possible = self.game.nrwg[self.pos]
+                dest = random.choice(possible)
+                self.pos_x = dest[0]
+                self.pos_y = dest[1]
             else:
                 logger.debug("CHASING")
                 self.ticks += 1
@@ -99,7 +98,7 @@ class Minotaur(pygame.sprite.Sprite):
                 queue = deque()
                 queue.appendleft(self.pos)
                 result = []
-                came_from = []
+                came_from = {}
                 visited = set(self.pos)
                 while len(queue) > 0:
                     node = queue.popleft()
@@ -111,15 +110,19 @@ class Minotaur(pygame.sprite.Sprite):
                             queue.append(n)
                             came_from[n] = node
                 next_node = came_from[self.game.squad.pos]
+                result.insert(0, next_node)
                 while next_node != self.pos:
-                    result.insert(0, next_node)
                     next_node = came_from[next_node]
-                self.pos = result[0]
+                    result.insert(0, next_node)
+                self.pos = result[1]
 
         if self.pos == self.game.squad.pos:
-            if self.group.power / len(self.game.squad.player_list) > 5:
+            if self.game.squad.power / len(self.game.squad.player_list) > 5:
+                logger.info("Minotaur is dead")
                 self.kill()
-            self.game.squad.dead = True
+            else:
+                self.game.squad.dead = True
+                logger.info("Player is dead")
 
 
 if __name__ == "__main__":
