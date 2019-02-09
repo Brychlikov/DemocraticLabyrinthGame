@@ -1,3 +1,5 @@
+import random
+
 import pygame
 import time
 from loguru import logger
@@ -64,6 +66,19 @@ class Treasure(Tile):
         return True
 
 
+class Weapon(Tile):
+    def __init__(self, settings, x, y):
+        super(Weapon, self).__init__(settings, x, y)
+
+        unscaled = pygame.image.load("assets/treasure.png").convert_alpha()
+        self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
+
+    def on_step(self, group):
+        for p in group.player_list:
+            if not random.randrange(0, 3):  # 25% chance of getting weapon for every player
+                p.power += random.randint(1, 4)
+
+
 class TrapTile(Tile):
     def __init__(self, settings, x, y):
         super().__init__(settings, x, y)
@@ -82,6 +97,18 @@ class StunTrap(TrapTile):
         logger.debug("Stepped on a stun trap")
         group.stunned += 5
         return True
+
+
+class VisionTrap(TrapTile):
+    def __init__(self, settings, x, y):
+        super(VisionTrap, self).__init__(settings, x, y)
+
+    def on_step(self, group):
+        logger.debug("Stepped on a vision trap")
+        group.vision_radius //= 3
+        group.impaired_vision_turns = 10
+        return True
+
 
 
 class LabExit(Tile):

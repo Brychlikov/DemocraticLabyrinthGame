@@ -46,8 +46,7 @@ class Settings:
     tile_size: int
     width: int
     height: int
-    background_color: pygame.Color = pygame.Color(1, 255, 1)
-    wall_color: pygame.Color = pygame.Color(55, 255, 255)
+    background_color: pygame.Color = pygame.Color(0, 0, 0)
     vision_radius: int = 150
     move_time: float = 1
 
@@ -77,7 +76,6 @@ class Game:
         self.running = False
 
         self.main_surf = pygame.Surface(self.settings.resolution)
-        self.main_surf.set_colorkey(self.settings.background_color)
         self.background = make_background(pygame.image.load("assets/tile.png"), self.settings.resolution)
         self.display: pygame.Surface = None
 
@@ -151,11 +149,12 @@ class Game:
         self.board[t.pos_y][t.pos_x] = t
 
     def make_vision_mask(self):
-        result = pygame.Surface(self.settings.resolution, pygame.SRCALPHA)
-        result.fill((0, 0, 0, 0))
+        result = pygame.Surface(self.settings.resolution)
+        result.fill((0, 0, 0))
         position = int((self.squad.pos_x + 0.5) * self.settings.tile_size), int((self.squad.pos_y + 0.5) * self.settings.tile_size)
-        pygame.draw.circle(result, (255, 255, 255, 255), position, self.settings.vision_radius)
-        return pygame.surfarray.array2d(result).astype(np.bool)
+        pygame.draw.circle(result, (255, 255, 255), position, self.squad.vision_radius)
+        to_return = pygame.surfarray.array2d(result).astype(np.bool)
+        return to_return
 
     def draw_frame(self):
         self.main_surf.blit(self.background, (0, 0))
@@ -178,6 +177,7 @@ class Game:
         array_view = pygame.surfarray.pixels3d(self.main_surf)
         array_view[mask] = np.array(self.settings.background_color)[:3]
         del array_view
+        del mask
 
         self.display.blit(self.main_surf, (0, 0))
         pygame.display.flip()
@@ -216,7 +216,7 @@ class Game:
     def make_leader_board(self):
         result = []
         for p in self.squad.player_list:
-            result.append((p, sum((g.progress / g.aim for g in p.goals))))
+            result.append((p, sum((g.progress / g.aim + int(g.achieved) for g in p.goals))))
         sorted(result, key=lambda i: i[1])
         return result
 
@@ -230,4 +230,4 @@ class Game:
         self.server.halt = True
         pygame.quit()
         for i, record in enumerate(self.make_leader_board()):
-            print(f"{i}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
+            print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")

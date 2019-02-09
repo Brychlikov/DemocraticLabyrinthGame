@@ -1,4 +1,5 @@
 import random
+from loguru import logger
 
 import game
 from queue import Queue
@@ -109,6 +110,7 @@ class Player:
     def to_dict(self):
         return {
             "name": self.name,
+            "power": self.power,
             "color": color_to_hex(self.color),
             "goals": [g.to_dict() for g in self.goals],
             "id": self.id,
@@ -127,6 +129,9 @@ class Squad(pygame.sprite.Sprite):
         self.game: game.Game = game_obj
         self.player_list = []
         self.monuments = []
+
+        self.vision_radius = settings.vision_radius
+        self.impaired_vision_turns = 0
 
         self.equipment = {}
         # This might be necessary, but initializing dict entries is hopefully handled by TreasureTileGen
@@ -270,9 +275,20 @@ class Squad(pygame.sprite.Sprite):
         if time.time() - self.game.last_minotaur_move > self.settings.move_time and self.game.last_minotaur_move > self.game.last_player_move:
             self.game.last_player_move = time.time()
             self.game.turns += 1
+
+            # resolving effects
+
+            # stun
             if self.stunned:
                 self.stunned -= 1
                 return
+
+            # Vision reduction
+            if self.impaired_vision_turns != 0:
+                self.impaired_vision_turns -= 1
+            else:
+                self.vision_radius = self.settings.vision_radius
+
             dest = (self.pos_x + self.direction.x, self.pos_y + self.direction.y)
             collision = bool(self.game.wall_graph.get(self.pos)) and dest in self.game.wall_graph.get(self.pos)
             if not collision:
@@ -283,3 +299,11 @@ class Squad(pygame.sprite.Sprite):
                 if consumed:
                     self.game.board[self.pos_y][self.pos_x].kill()
                     self.game.board[self.pos_y][self.pos_x] = tiles.Tile(self.settings, self.pos_x, self.pos_y)
+
+            if self.pos == self.game.minotaur.pos:
+                if self.power / len(self.player_list) > 5:
+                    self.game.minotaur.kill()
+                    logger.info("Minotaur is dead")
+                else:
+                    self.game.squad.dead = True
+                    logger.info("Player is dead")

@@ -45,9 +45,8 @@ class OutOfLabyrinthGoalMoreThan(Goal):
         self.aim = 1
 
     def update(self):
-        if self.game.squad.equipment['HomerBook'] == 1:
+        if self.game.squad.equipment.get('HomerBook') == 1:
             self.achieved = True
-            logger.info()
             return True
         elif self.game.labyrinth_finished and self.game.turns > self.more_than:
             self.achieved = True
