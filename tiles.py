@@ -62,6 +62,7 @@ class Treasure(Tile):
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
 
     def on_step(self, group):
+        group.game.text_display.print(f"Odnaleźliście skarb - {self.name}!")
         group.equipment[self.name] += 1
         return True
 
@@ -74,6 +75,7 @@ class Weapon(Tile):
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
 
     def on_step(self, group):
+        group.game.text_display.print("Podnieśliście broń!")
         for p in group.player_list:
             if not random.randrange(0, 3):  # 25% chance of getting weapon for every player
                 p.power += random.randint(1, 4)
@@ -95,6 +97,7 @@ class StunTrap(TrapTile):
 
     def on_step(self, group):
         logger.debug("Stepped on a stun trap")
+        group.game.text_display.print("Wpadliście w pułapkę ogłuszającą!")
         group.stunned += 5
         return True
 
@@ -105,6 +108,7 @@ class VisionTrap(TrapTile):
 
     def on_step(self, group):
         logger.debug("Stepped on a vision trap")
+        group.game.text_display.print("Wpadliście w pułapkę oślepiającą!")
         group.vision_radius //= 3
         group.impaired_vision_turns = 10
         return True
@@ -117,6 +121,7 @@ class LabExit(Tile):
 
     def on_step(self, group):
         logger.debug("Labyrinth finished")
+        group.game.text_display.print(f"Wyszliście z labiryntu w {self.game.turns} tur!")
         group.game.labyrinth_finished = True
 
 

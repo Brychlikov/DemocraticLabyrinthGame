@@ -120,10 +120,12 @@ class Minotaur(pygame.sprite.Sprite):
         if self.pos == self.game.squad.pos:
             if self.game.squad.power / len(self.game.squad.player_list) > 5:
                 logger.info("Minotaur is dead")
+                self.game.text_display.print("Zabiliście Minotaura!")
                 self.kill()
             else:
                 self.game.squad.dead = True
                 logger.info("Player is dead")
+                self.game.text_display.print("Nie żyjecie!")
 
 
 if __name__ == "__main__":

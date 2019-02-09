@@ -12,6 +12,7 @@ from queue import Queue
 import group
 import minotaur
 import labgen
+import textDisplay
 import tiles
 import server
 import contentGen
@@ -82,7 +83,8 @@ class Game:
         # TODO do something with it
         # maybe separate init() is useless?
         pygame.init()
-        self.display = pygame.display.set_mode(self.settings.resolution)
+        pygame.font.init()
+        self.display = pygame.display.set_mode((self.settings.resolution[0] + 300, self.settings.resolution[1]))
         self.display.set_colorkey(self.settings.background_color)
 
         self.clock = pygame.time.Clock()
@@ -91,6 +93,9 @@ class Game:
         self.new_player_queue = None
         self.goal_queue = None
         self.info_queue = None
+
+        self.text_display = textDisplay.TextDisplay((300, 300), "dejavu", 24)
+        self.text_display.print("Test")
 
         self.squad = group.Squad(settings, self)
         self.minotaur = minotaur.Minotaur(settings, self)
@@ -180,6 +185,8 @@ class Game:
         del mask
 
         self.display.blit(self.main_surf, (0, 0))
+        self.display.blit(self.text_display.draw_queue(), (self.settings.resolution[0], 0))
+
         pygame.display.flip()
 
     def handle_events(self):
@@ -229,5 +236,7 @@ class Game:
 
         self.server.halt = True
         pygame.quit()
+        self.text_display.flush()
         for i, record in enumerate(self.make_leader_board()):
             print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
+            self.text_display.print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
