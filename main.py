@@ -21,3 +21,4 @@ if __name__ == '__main__':
         game.loop()
     except KeyboardInterrupt:
         game.server.halt = True
+        game.unmute_thread.cancel()

@@ -62,6 +62,7 @@ class Treasure(Tile):
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
 
     def on_step(self, group):
+        group.game.play_sound("treasure", game.TREASURE_CHANNEL)
         group.game.text_display.print(f"Odnaleźliście skarb - {self.name}!")
         group.equipment[self.name] += 1
         return True
@@ -75,6 +76,7 @@ class Weapon(Tile):
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
 
     def on_step(self, group):
+        group.game.play_sound("treasure", game.TREASURE_CHANNEL)
         group.game.text_display.print("Podnieśliście broń!")
         for p in group.player_list:
             if not random.randrange(0, 3):  # 25% chance of getting weapon for every player
@@ -89,13 +91,16 @@ class TrapTile(Tile):
 
     def add_aware_player(self, player):
         player.knows_about.append(self)
-
+        
+    def on_step(self, group):
+        group.game.play_sound("trap", game.TRAP_CHANNEL)
 
 class StunTrap(TrapTile):
     def __init__(self, settings, x, y):
         super().__init__(settings, x, y)
 
     def on_step(self, group):
+        super(StunTrap, self).on_step(group)
         logger.debug("Stepped on a stun trap")
         group.game.text_display.print("Wpadliście w pułapkę ogłuszającą!")
         group.stunned += 5
@@ -107,6 +112,7 @@ class VisionTrap(TrapTile):
         super(VisionTrap, self).__init__(settings, x, y)
 
     def on_step(self, group):
+        super(VisionTrap, self).on_step(group)
         logger.debug("Stepped on a vision trap")
         group.game.text_display.print("Wpadliście w pułapkę oślepiającą!")
         group.vision_radius //= 3

@@ -8,6 +8,7 @@ from typing import List
 import pygame
 from dataclasses import dataclass
 from queue import Queue
+from threading import Thread
 
 import group
 import minotaur
@@ -17,6 +18,12 @@ import tiles
 import server
 import contentGen
 from imgutils import make_background
+
+AMBIENT_CHANNEL = 0
+TRAP_CHANNEL = 1
+TREASURE_CHANNEL = 2
+MINOTAUR_CHANNEL = 3
+
 
 
 def wall_graph(wall_list):
@@ -56,6 +63,31 @@ class Settings:
         return self.width * self.tile_size, self.height * self.tile_size
 
 
+class DelayedCall(Thread):
+    def __init__(self, t, func, args=None, kwargs=None):
+        super(DelayedCall, self).__init__()
+        self.should_stop = False
+        self.t = t
+        self.func = func
+        self.f_args = args if args is not None else []
+        self.f_kwargs = kwargs if kwargs is not None else {}
+
+        self._exit_early = False
+
+    def run(self):
+        start_time = time.time()
+        while time.time() - start_time < self.t:
+            if self._exit_early:
+                logger.debug("Delayed call canceled early")
+                break
+            time.sleep(0.001)
+        if not self._exit_early:
+            self.func(*self.f_args, **self.f_kwargs)
+
+    def cancel(self):
+        logger.debug("Delayed call got cancellation signal")
+        self._exit_early = True
+
 class Game:
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -84,6 +116,9 @@ class Game:
         # maybe separate init() is useless?
         pygame.init()
         pygame.font.init()
+        pygame.mixer.init()
+
+        self.unmute_thread: DelayedCall = None
         self.display = pygame.display.set_mode((self.settings.resolution[0] + 300, self.settings.resolution[1]))
         self.display.set_colorkey(self.settings.background_color)
 
@@ -93,6 +128,8 @@ class Game:
         self.new_player_queue = None
         self.goal_queue = None
         self.info_queue = None
+
+        self.sound_bank = {}
 
         self.text_display = textDisplay.TextDisplay((300, 300), "dejavu", 24)
         self.text_display.print("Test")
@@ -138,6 +175,31 @@ class Game:
         self.wall_horizontal = pygame.transform.scale(unscaled, (self.settings.tile_size * 7 // 6, self.settings.tile_size))
         unscaled = pygame.image.load("assets/wall_vertical.png").convert_alpha()
         self.wall_vertical = pygame.transform.scale(unscaled, (self.settings.tile_size // 6, self.settings.tile_size))
+
+        self.make_sound_bank()
+        c = pygame.mixer.Channel(AMBIENT_CHANNEL)
+        c.play(self.sound_bank["ambient"], loops=-1)
+
+    def make_sound_bank(self):
+        self.sound_bank["minotaur_chase"] = pygame.mixer.Sound("sounds/minotaur_chase.ogg")
+        self.sound_bank["trap"] = pygame.mixer.Sound("sounds/pulapka.ogg")
+        self.sound_bank["treasure"] = pygame.mixer.Sound("sounds/skarb.ogg")
+        self.sound_bank["ambient"] = pygame.mixer.Sound("sounds/main_theme.ogg")
+
+    def play_sound(self, name, chan_id):
+        if self.unmute_thread is not None and self.unmute_thread.isAlive():
+            self.unmute_thread.cancel()
+
+        ambient_chan = pygame.mixer.Channel(AMBIENT_CHANNEL)
+        c = pygame.mixer.Channel(chan_id)
+
+        ambient_chan.set_volume(0.15)
+        sound = self.sound_bank[name]
+        c.play(sound)
+
+        self.unmute_thread = DelayedCall(sound.get_length(), ambient_chan.set_volume, args=(1,))
+        self.unmute_thread.start()
+
 
     def add_special_tile(self):
         gen_list = [g for g in self.content_gens if g.generates_tiles]
@@ -235,8 +297,17 @@ class Game:
             self.clock.tick(60)
 
         self.server.halt = True
-        pygame.quit()
         self.text_display.flush()
         for i, record in enumerate(self.make_leader_board()):
             print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
             self.text_display.print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
+        pygame.display.flip()
+
+        done = False
+        while not done:
+            for e in pygame.event.get():
+                if e.type == pygame.QUIT:
+                    done = True
+            self.clock.tick(60)
+
+        pygame.quit()

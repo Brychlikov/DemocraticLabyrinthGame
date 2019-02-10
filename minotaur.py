@@ -91,6 +91,7 @@ class Minotaur(pygame.sprite.Sprite):
             else:
                 if self.ticks == 0:
                     logger.debug("Minotaur started the chase")
+                    self.game.play_sound("minotaur_chase", game.MINOTAUR_CHANNEL)
                 self.ticks += 1
                 if self.ticks > 15:
                     logger.debug("Minotaur ended the chase")
