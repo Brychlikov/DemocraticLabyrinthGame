@@ -40,11 +40,13 @@ class TreasureContentGen(ContentGen):
             self.name = self.treasure["name"]
             if not(self.name in game_obj.squad.equipment.keys()):
                 break
+        if self.treasure["special"]:
+            self.generates_goals = False
         game_obj.squad.equipment[self.name] = 0
 
     def gen_tile(self):
         try:
-            tile_obj = tiles.Treasure(self.settings, -1, -1, self.name)
+            tile_obj = tiles.Treasure(self.settings, -1, -1, self.treasure)
         except ValueError as e:
             print(self.treasure["color"])
             raise e
@@ -53,7 +55,7 @@ class TreasureContentGen(ContentGen):
 
     def gen_goal(self, player):
         aim = random.randint(math.ceil(self.tiles_generated * 2/3), self.tiles_generated)
-        goal_obj = goals.GetTreasureGoal(player, self.game, self.name, aim)
+        goal_obj = goals.GetTreasureGoal(player, self.game, self.treasure, aim)
         return goal_obj
 
 

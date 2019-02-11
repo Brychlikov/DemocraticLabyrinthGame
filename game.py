@@ -319,7 +319,9 @@ class Game:
         self.text_display.flush()
         for i, record in enumerate(self.make_leader_board()):
             print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
-            self.text_display.print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]} pkt.")
+            self.text_display.print(f"{i + 1}. miejsce zajmuje {record[0].name} z wynikiem {record[1]:.3f} pkt.")
+
+        self.draw_frame()
         pygame.display.flip()
 
         done = False

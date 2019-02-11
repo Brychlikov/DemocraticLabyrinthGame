@@ -47,9 +47,11 @@ class OutOfLabyrinthGoalMoreThan(Goal):
     def update(self):
         if self.game.squad.equipment.get('HomerBook') == 1:
             self.achieved = True
+            self.progress = 1
             return True
         elif self.game.labyrinth_finished and self.game.turns > self.more_than:
             self.achieved = True
+            self.progress = 1
             return True
         elif self.game.turns <= self.more_than:
             self.achievable = False
@@ -71,8 +73,10 @@ class OutOfLabyrinthGoalLessThan(Goal):
     def update(self):
         if self.game.squad.equipment.get('NarcyzMirror') == 1:
             self.achieved = True
+            self.progress = 1
         elif self.game.labyrinth_finished and self.game.turns < self.less_than:
             self.achieved = True
+            self.progress = 1
             return True
         elif self.game.turns >= self.less_than:
             self.achievable = False
@@ -80,15 +84,16 @@ class OutOfLabyrinthGoalLessThan(Goal):
 
 
 class GetTreasureGoal(Goal):
-    def __init__(self, player, game, name, amount):
+    def __init__(self, player, game, treasure_dict, amount):
         super().__init__(player, game)
-        self.name = name
+        self.info = treasure_dict
+        self.name = treasure_dict["name"]
+        self.friendly_name = treasure_dict["friendly_name"]
         self.aim = amount
-        game.squad.equipment[name] = 0
         self.short_desc = f"Znajdź {self.aim} {self.name}"
         self.description = f"Ostatniej nocy przyśniła Ci się Afrodyta " \
                            f"i po starej znajomości powiedziała Ci o czym marzy Twoja druga połówka." \
-                           f"Znajdź {name} a do końca życia będziecie szczęśliwi!"
+                           f"Znajdź {self.friendly_name} a do końca życia będziecie szczęśliwi!"
 
     def update(self):
         self.progress = self.game.squad.equipment[self.name]
@@ -134,6 +139,7 @@ class KillMinotaurGoal(Goal):
 
     def update(self):
         if not self.game.minotaur.alive():
+            self.progress = 1
             self.achieved = True
             return True
 
@@ -148,4 +154,5 @@ class DieByMinotaurGoal(Goal):
     def update(self):
         if self.game.squad.dead:
             self.achieved = True
+            self.progress = 1
             return True

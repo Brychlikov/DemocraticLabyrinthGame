@@ -54,16 +54,18 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Treasure(Tile):
-    def __init__(self, settings, x, y, name):
+    def __init__(self, settings, x, y, treasure_dict):
         super().__init__(settings, x, y)
-        self.name = name
+        self.info = treasure_dict
+        self.name = treasure_dict["name"]
+        self.friendly_name = treasure_dict["friendly_name"]
 
         unscaled = pygame.image.load("assets/treasure.png").convert_alpha()
         self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
 
     def on_step(self, group):
         group.game.play_sound("treasure", game.TREASURE_CHANNEL)
-        group.game.text_display.print(f"Odnaleźliście skarb - {self.name}!")
+        group.game.text_display.print(f"Odnaleźliście skarb - {self.friendly_name}!")
         group.equipment[self.name] += 1
         return True
 

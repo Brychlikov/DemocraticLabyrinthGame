@@ -2,41 +2,49 @@
   {
     "name": "HomerBook",
     "friendly_name": "Zaginiona Księga Homera",
-    "color": "gold"
+    "color": "gold",
+    "special": true
   },
   {
     "name": "NarcyzMirror",
     "friendly_name": "Lustro Narcyza",
-    "color": "gold"
+    "color": "gold",
+    "special": false
   },
   {
     "name": "AchillesHeel",
     "friendly_name": "Pięta Achillesa w formalinie",
-    "color": "gold"
+    "color": "gold",
+    "special": false
   },
   {
     "name": "PolandKaduceusz",
     "friendly_name": "Kaduceusz Polski",
-    "color": "gold"
+    "color": "gold",
+    "special": false
   },
   {
     "name": "IkarFeathers",
     "friendly_name": "Pióra Ikara",
-    "color": "gold"
+    "color": "gold",
+    "special": false
   },
   {
     "name": "Cornucopia",
     "friendly_name": "Róg obfitości tabaki",
-    "color": "gold"
+    "color": "gold",
+    "special": false
   },
   {
     "name": "GoldenCarpet",
     "friendly_name":  "Dywan ze złotego runa",
-    "color": "gold"
+    "color": "gold",
+    "special": false
   },
   {
     "name": "PandoraBox",
     "friendly_name": "Puszka Agaty",
-    "color": "gold"
+    "color": "gold",
+    "special": true
   }
 ]
