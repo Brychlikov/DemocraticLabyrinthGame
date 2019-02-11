@@ -97,3 +97,16 @@ class WeaponContentGen(ContentGen):
         tile_obj = tiles.Weapon(self.settings, -1, -1)
         self.tiles_generated += 1
         return tile_obj
+
+
+class MinotaurContectGen(ContentGen):
+    def __init__(self, settings, game_obj):
+        super(MinotaurContectGen, self).__init__(settings, game_obj)
+        self.generates_goals = True
+
+    def gen_goal(self, player):
+        if random.randint(0, 1):
+            goal_obj = goals.DieByMinotaurGoal(player, self.game)
+        else:
+            goal_obj = goals.KillMinotaurGoal(player, self.game)
+        return goal_obj

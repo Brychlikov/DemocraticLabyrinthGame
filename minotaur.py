@@ -77,9 +77,9 @@ class Minotaur(pygame.sprite.Sprite):
         self.pos_x, self.pos_y = value
 
     def update(self):
-        if time.time() - self.game.last_player_move > self.settings.move_time and self.game.last_player_move > self.game.last_minotaur_move:
-            self.game.last_minotaur_move = time.time()
-            if (abs(self.pos_x - self.game.squad.pos_x) > 6 and abs(self.pos_y - self.game.squad.pos_y) > 6) or self.ticks_timer == True:
+        if self.game.ticks - self.game.last_minotaur_move >= 1:
+            self.game.last_minotaur_move += 1
+            if (abs(self.pos_x - self.game.squad.pos_x) > 5 and abs(self.pos_y - self.game.squad.pos_y) > 5) or self.ticks_timer == True:
                 self.ticks += 1
                 if self.ticks > 15:
                     self.ticks = 0
@@ -116,7 +116,10 @@ class Minotaur(pygame.sprite.Sprite):
                 while next_node != self.pos:
                     next_node = came_from[next_node]
                     result.insert(0, next_node)
-                self.pos = result[1]
+                try:
+                    self.pos = result[1]
+                except IndexError:
+                    pass
 
         if self.pos == self.game.squad.pos:
             if self.game.squad.power / len(self.game.squad.player_list) > 5:

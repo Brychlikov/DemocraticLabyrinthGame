@@ -272,9 +272,8 @@ class Squad(pygame.sprite.Sprite):
         self.update_player_decisions()
         self.vote_direction()
 
-        if time.time() - self.game.last_minotaur_move > self.settings.move_time and self.game.last_minotaur_move > self.game.last_player_move:
-            self.game.last_player_move = time.time()
-            self.game.turns += 1
+        if self.game.ticks - self.game.last_player_move >= 1:
+            self.game.last_player_move += 1
 
             # resolving effects
 

@@ -52,7 +52,7 @@ class Server(threading.Thread):
                 break
             try:
                 received, addr = self.register_socket.recvfrom(256)
-                logger.debug(f"registration pending from {addr}")
+                logger.trace(f"registration pending from {addr}")
 
                 new_name = received.decode('utf-8')
                 new_id = len(self.client_directions)
@@ -61,11 +61,11 @@ class Server(threading.Thread):
                 logger.info(f"Registered new player with name {new_name} and id {new_id}")
 
                 new_goals = self.goal_queue.get()
-                logger.debug("New player data exchange finished")
+                logger.trace("New player data exchange finished")
                 encoded_goals = "\n".join(new_goals).encode()
                 message = struct.pack(f'>i{len(encoded_goals)}s', new_id, encoded_goals)
                 self.register_socket.sendto(message, addr)
-                logger.debug("Goals sent to client")
+                logger.trace("Goals sent to client")
 
                 self.client_names.append(received.decode('utf-8'))
                 self.client_adresses.append(addr)
@@ -77,7 +77,7 @@ class Server(threading.Thread):
             try:
                 received, addr = self.s.recvfrom(128)
                 id, direction = struct.unpack('>ii', received)
-                logger.debug(f"Direction received. id: {id} direction: {direction}")
+                logger.trace(f"Direction received. id: {id} direction: {direction}")
                 if id >= len(self.client_directions):
                     logger.warning("Direction request from unknown id")
                     continue

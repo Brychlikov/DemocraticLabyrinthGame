@@ -99,12 +99,13 @@ class Game:
                 row.append(tiles.Tile(settings, i, j))
             self.board.append(row)
 
-        self.turns = 0
+        self.ticks = 0.0
+        self.last_tick_time = time.time()
         self.labyrinth_finished = False
 
         self.frames_until_move = 0
-        self.last_player_move = time.time()
-        self.last_minotaur_move = time.time() + self.settings.move_time
+        self.last_player_move = 0
+        self.last_minotaur_move = -0.5
 
         self.running = False
 
@@ -145,6 +146,8 @@ class Game:
         self.content_gens: List[contentGen.ContentGen] = [contentGen.TreasureContentGen(settings,  self) for i in range(3)]
         self.content_gens.append(self.trap_gen)
         self.content_gens.append(contentGen.OutOfLabirynthContentGen(settings, self))
+        self.content_gens.append(contentGen.WeaponContentGen(settings, self))
+        self.content_gens.append(contentGen.MinotaurContectGen(settings, self))
         tiles.Tile.groups.append(self.all_sprites)
 
         for i in range(100):
@@ -180,6 +183,11 @@ class Game:
         c = pygame.mixer.Channel(AMBIENT_CHANNEL)
         c.play(self.sound_bank["ambient"], loops=-1)
 
+    @property
+    def turns(self):
+        """To keep compatibility after changing tick model"""
+        return int(self.ticks)
+
     def make_sound_bank(self):
         self.sound_bank["minotaur_chase"] = pygame.mixer.Sound("sounds/minotaur_chase.ogg")
         self.sound_bank["trap"] = pygame.mixer.Sound("sounds/pulapka.ogg")
@@ -214,6 +222,7 @@ class Game:
         t = gen.gen_tile()
         t.pos = random.randrange(0, self.settings.width), random.randrange(0, self.settings.height)
         self.board[t.pos_y][t.pos_x] = t
+        x = 43
 
     def make_vision_mask(self):
         result = pygame.Surface(self.settings.resolution)
@@ -256,6 +265,11 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
 
+    def update_ticks(self):
+        if time.time() - self.last_tick_time > self.settings.move_time:
+            self.last_tick_time = time.time()
+            self.ticks += 0.5
+
     def update_logic(self):
 
         if not self.new_player_queue.empty():
@@ -292,6 +306,7 @@ class Game:
     def loop(self):
         while self.running:
             self.handle_events()
+            self.update_ticks()
             self.update_logic()
             self.draw_frame()
             self.clock.tick(60)
