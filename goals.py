@@ -128,6 +128,7 @@ class SeeAMonumentGoal (Goal):
 class KillMinotaurGoal(Goal):
     def __init__(self, player, game_obj):
         super(KillMinotaurGoal, self).__init__(player, game_obj)
+        self.aim = 1
         self.short_desc = f"Zabij minotaura"
         self.description = f"Zabij minotaura"
 
@@ -140,6 +141,7 @@ class KillMinotaurGoal(Goal):
 class DieByMinotaurGoal(Goal):
     def __init__(self, player, game_object):
         super(DieByMinotaurGoal, self).__init__(player, game_object)
+        self.aim = 1
         self.short_desc = f"Zgiń z rąk minoraura"
         self.description = f"Zgiń z rąk minoraura"
 
