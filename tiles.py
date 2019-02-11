@@ -82,6 +82,8 @@ class Weapon(Tile):
             if not random.randrange(0, 3):  # 25% chance of getting weapon for every player
                 p.power += random.randint(1, 4)
 
+        return True
+
 
 class TrapTile(Tile):
     def __init__(self, settings, x, y):
@@ -94,6 +96,7 @@ class TrapTile(Tile):
         
     def on_step(self, group):
         group.game.play_sound("trap", game.TRAP_CHANNEL)
+
 
 class StunTrap(TrapTile):
     def __init__(self, settings, x, y):

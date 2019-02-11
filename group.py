@@ -267,8 +267,6 @@ class Squad(pygame.sprite.Sprite):
                 draw_arrow((start_x, start_y), (start_x, start_y - self.settings.tile_size), color)
 
     def update(self, *args):
-        for player in self.player_list:
-            player.update_goals()
         self.update_player_decisions()
         self.vote_direction()
 
@@ -308,3 +306,6 @@ class Squad(pygame.sprite.Sprite):
                     self.game.squad.dead = True
                     logger.info("Player is dead")
                     self.game.text_display.print("Nie żyjecie!")
+
+        for player in self.player_list:
+            player.update_goals()
