@@ -14,7 +14,12 @@ from game import Game, Settings
 
 if __name__ == '__main__':
 
-    settings = Settings(40, 20, 20, move_time=0.5, vision_radius=400)
+    mute = False
+    try:
+        mute = sys.argv[2]
+    except IndexError:
+        pass
+    settings = Settings(40, 20, 20, move_time=0.5, vision_radius=400, mute=mute)
     game = Game(settings)
     game.init()
     try:

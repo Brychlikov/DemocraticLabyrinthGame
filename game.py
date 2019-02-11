@@ -57,6 +57,7 @@ class Settings:
     background_color: pygame.Color = pygame.Color(0, 0, 0)
     vision_radius: int = 150
     move_time: float = 1
+    mute: bool = False
 
     @property
     def resolution(self):
@@ -178,7 +179,8 @@ class Game:
 
         self.make_sound_bank()
         c = pygame.mixer.Channel(AMBIENT_CHANNEL)
-        c.play(self.sound_bank["ambient"], loops=-1)
+        if not self.settings.mute:
+            c.play(self.sound_bank["ambient"], loops=-1)
 
     def make_sound_bank(self):
         self.sound_bank["minotaur_chase"] = pygame.mixer.Sound("sounds/minotaur_chase.ogg")
@@ -187,6 +189,8 @@ class Game:
         self.sound_bank["ambient"] = pygame.mixer.Sound("sounds/main_theme.ogg")
 
     def play_sound(self, name, chan_id):
+        if self.settings.mute:
+            return
         if self.unmute_thread is not None and self.unmute_thread.isAlive():
             self.unmute_thread.cancel()
 
