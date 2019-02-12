@@ -153,7 +153,7 @@ class Game:
         self.content_gens.append(contentGen.WeaponContentGen(settings, self))
         self.content_gens.append(contentGen.MinotaurContectGen(settings, self))
 
-        for i in range(200):
+        for i in range(15):
             self.add_special_tile()
 
         self.wall_list, entrance_wall, exit_wall = labgen.actually_gen_lab(settings.height)
@@ -324,7 +324,7 @@ class Game:
         result = []
         for p in self.squad.player_list:
             result.append((p, sum((g.progress / g.aim + int(g.achieved) for g in p.goals))))
-        sorted(result, key=lambda i: i[1])
+        result.sort(key=lambda i: i[1] * -1)
         return result
 
     def loop(self):
