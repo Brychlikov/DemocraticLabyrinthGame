@@ -10,7 +10,7 @@ class Tile(pygame.sprite.Sprite):
     groups = []
 
     def __init__(self, settings, x, y):
-        super().__init__(*Tile.groups)
+        super().__init__(self.groups)
 
         self.settings: game.Settings = settings
         self.image = pygame.Surface((settings.tile_size, settings.tile_size), pygame.SRCALPHA)

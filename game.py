@@ -94,6 +94,8 @@ class Game:
         self.settings = settings
 
         self.board = []
+        self.non_integral_tiles = 0
+        self.orphans = []
         for i in range(settings.width):
             row = []
             for j in range(settings.height):
@@ -142,6 +144,7 @@ class Game:
 
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.squad)
+        self.all_sprites.add(self.minotaur)
 
         self.trap_gen = contentGen.TrapContentGen(settings, self)
         self.content_gens: List[contentGen.ContentGen] = [contentGen.TreasureContentGen(settings,  self) for i in range(3)]
@@ -149,9 +152,8 @@ class Game:
         self.content_gens.append(contentGen.OutOfLabirynthContentGen(settings, self))
         self.content_gens.append(contentGen.WeaponContentGen(settings, self))
         self.content_gens.append(contentGen.MinotaurContectGen(settings, self))
-        tiles.Tile.groups.append(self.all_sprites)
 
-        for i in range(100):
+        for i in range(200):
             self.add_special_tile()
 
         self.wall_list, entrance_wall, exit_wall = labgen.actually_gen_lab(settings.height)
@@ -160,7 +162,6 @@ class Game:
         exit_tile = tiles.LabExit(self.settings, exit_wall.x1 - 1, exit_wall.y1)
         self.board[exit_wall.y1][exit_wall.x1 - 1] = exit_tile
 
-        self.all_sprites.add(self.minotaur)
         self.wall_graph = wall_graph(self.wall_list)
 
         self.nrwg = minotaur.non_retarded_wall_graph(self.wall_graph, settings)
@@ -214,6 +215,7 @@ class Game:
 
 
     def add_special_tile(self):
+        pre_add_leaked_tiles = self.non_integral_tiles
         gen_list = [g for g in self.content_gens if g.generates_tiles]
         for gen in gen_list:
             if gen.tiles_generated == 0:
@@ -224,9 +226,9 @@ class Game:
 
         gen = random.choice(gen_list)
         t = gen.gen_tile()
+        self.all_sprites.add(t)
         t.pos = random.randrange(0, self.settings.width), random.randrange(0, self.settings.height)
         self.board[t.pos_y][t.pos_x] = t
-        x = 43
 
     def make_vision_mask(self):
         result = pygame.Surface(self.settings.resolution)
@@ -274,6 +276,24 @@ class Game:
             self.last_tick_time = time.time()
             self.ticks += 0.5
 
+    def check_board_integrity(self, log=False):
+        lost = False
+        self.non_integral_tiles = 0
+        del self.orphans
+        self.orphans = []
+        for s in self.all_sprites:
+            if isinstance(s, tiles.Tile) and self.board[s.pos_y][s.pos_x] is not s:
+                if log:
+                    logger.warning(f"Board lost integrity on coords {s.pos} on tick {self.ticks}")
+                lost = True
+                self.orphans.append(s)
+                self.non_integral_tiles += 1
+        return lost
+
+    def kill_the_orphans(self):
+        for s in self.orphans:
+            s.kill()
+
     def update_logic(self):
 
         if not self.new_player_queue.empty():
@@ -313,6 +333,9 @@ class Game:
             self.update_ticks()
             self.update_logic()
             self.draw_frame()
+            self.check_board_integrity()
+            self.kill_the_orphans()
+            self.check_board_integrity(log=True)
             self.clock.tick(60)
 
         self.server.halt = True
