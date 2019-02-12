@@ -1,4 +1,8 @@
+import random
+
 import pygame
+import time
+from loguru import logger
 import game
 
 
@@ -50,15 +54,86 @@ class Tile(pygame.sprite.Sprite):
 
 
 class Treasure(Tile):
-    def __init__(self, settings, x, y, name, color=(255, 0, 0)):
+    def __init__(self, settings, x, y, treasure_dict):
         super().__init__(settings, x, y)
-        self.name = name
+        self.info = treasure_dict
+        self.name = treasure_dict["name"]
+        self.friendly_name = treasure_dict["friendly_name"]
 
-        pygame.draw.circle(self.image, color, (self.settings.tile_size // 2, self.settings.tile_size // 2), self.settings.tile_size//2)
+        unscaled = pygame.image.load("assets/treasure.png").convert_alpha()
+        self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
 
     def on_step(self, group):
+        group.game.play_sound("treasure", game.TREASURE_CHANNEL)
+        group.game.text_display.print(f"Odnaleźliście skarb - {self.friendly_name}!")
         group.equipment[self.name] += 1
         return True
+
+
+class Weapon(Tile):
+    def __init__(self, settings, x, y):
+        super(Weapon, self).__init__(settings, x, y)
+
+        unscaled = pygame.image.load("assets/treasure.png").convert_alpha()
+        self.image = pygame.transform.scale(unscaled, (self.settings.tile_size, self.settings.tile_size))
+
+    def on_step(self, group):
+        group.game.play_sound("treasure", game.TREASURE_CHANNEL)
+        group.game.text_display.print("Podnieśliście broń!")
+        for p in group.player_list:
+            if not random.randrange(0, 3):  # 25% chance of getting weapon for every player
+                p.power += random.randint(1, 4)
+
+        return True
+
+
+class TrapTile(Tile):
+    def __init__(self, settings, x, y):
+        super().__init__(settings, x, y)
+
+        self.players_knowing = []
+
+    def add_aware_player(self, player):
+        player.knows_about.append(self)
+        
+    def on_step(self, group):
+        group.game.play_sound("trap", game.TRAP_CHANNEL)
+
+
+class StunTrap(TrapTile):
+    def __init__(self, settings, x, y):
+        super().__init__(settings, x, y)
+
+    def on_step(self, group):
+        super(StunTrap, self).on_step(group)
+        logger.debug("Stepped on a stun trap")
+        group.game.text_display.print("Wpadliście w pułapkę ogłuszającą!")
+        group.stunned += 5
+        return True
+
+
+class VisionTrap(TrapTile):
+    def __init__(self, settings, x, y):
+        super(VisionTrap, self).__init__(settings, x, y)
+
+    def on_step(self, group):
+        super(VisionTrap, self).on_step(group)
+        logger.debug("Stepped on a vision trap")
+        group.game.text_display.print("Wpadliście w pułapkę oślepiającą!")
+        group.vision_radius //= 3
+        group.impaired_vision_turns = 10
+        return True
+
+
+
+class LabExit(Tile):
+    def __init__(self, settings, x, y):
+        super().__init__(settings, x, y)
+
+    def on_step(self, group):
+        logger.debug("Labyrinth finished")
+        group.game.text_display.print(f"Wyszliście z labiryntu w {self.game.turns} tur!")
+        group.game.labyrinth_finished = True
 
 
 class Monument(Tile):

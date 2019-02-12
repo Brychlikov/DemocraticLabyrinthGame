@@ -1,3 +1,4 @@
+import json
 import socket
 import time
 import struct
@@ -21,31 +22,37 @@ logger.debug("Server imported")
 
 
 class Server(threading.Thread):
-    def __init__(self, ip, port, register_port, queue: Queue, player_queue: Queue, goal_queue: Queue):
+    def __init__(self, ip, port, register_port, queue: Queue, player_queue: Queue, goal_queue: Queue, info_queue: Queue):
         super().__init__()
 
         self.queue = queue
         self.player_queue = player_queue
         self.goal_queue = goal_queue
+        self.info_queue = info_queue
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.bind((ip, port))
         self.s.setblocking(False)
 
+        self.halt = False
+
         self.register_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.register_socket.bind((ip, register_port))
         self.register_socket.setblocking(False)
         self.client_directions = []
-        self.client_ips = []
+        self.client_adresses = []
         self.client_names = []
 
     @logger.catch
     def run(self):
         logger.debug("Server thread started")
         while True:
+            if self.halt:
+                logger.debug("Server got termination signal")
+                break
             try:
                 received, addr = self.register_socket.recvfrom(256)
-                logger.debug(f"registration pending from {addr}")
+                logger.trace(f"registration pending from {addr}")
 
                 new_name = received.decode('utf-8')
                 new_id = len(self.client_directions)
@@ -54,14 +61,14 @@ class Server(threading.Thread):
                 logger.info(f"Registered new player with name {new_name} and id {new_id}")
 
                 new_goals = self.goal_queue.get()
-                logger.debug("New player data exchange finished")
+                logger.trace("New player data exchange finished")
                 encoded_goals = "\n".join(new_goals).encode()
                 message = struct.pack(f'>i{len(encoded_goals)}s', new_id, encoded_goals)
                 self.register_socket.sendto(message, addr)
-                logger.debug("Goals sent to client")
+                logger.trace("Goals sent to client")
 
                 self.client_names.append(received.decode('utf-8'))
-                self.client_ips.append(addr[0])
+                self.client_adresses.append(addr)
                 self.client_directions.append(None)
 
             except BlockingIOError:
@@ -70,7 +77,7 @@ class Server(threading.Thread):
             try:
                 received, addr = self.s.recvfrom(128)
                 id, direction = struct.unpack('>ii', received)
-                logger.debug(f"Direction received. id: {id} direction: {direction}")
+                logger.trace(f"Direction received. id: {id} direction: {direction}")
                 if id >= len(self.client_directions):
                     logger.warning("Direction request from unknown id")
                     continue
@@ -81,8 +88,15 @@ class Server(threading.Thread):
 
             while not self.queue.empty():
                 _ = self.queue.get()
-
             self.queue.put(self.client_directions)
+
+            if not self.info_queue.empty():
+                data = self.info_queue.get()
+                for player in data:
+                    player_address = self.client_adresses[player["id"]]
+                    json.dump(player, open("example_dump.json", "w"))
+                    to_send = json.dumps(player).encode()
+                    self.s.sendto(to_send, (player_address[0], 5554))
             time.sleep(0.001)
 
 

@@ -1,5 +1,5 @@
 import pygame
-from new_temp import actually_gen_lab
+from labgen import actually_gen_lab
 
 COLORS = [
     (0, 0, 255),
@@ -34,12 +34,12 @@ while not done:
             done = True
 
     display.fill((0, 0, 0))
-    wall_list = actually_gen_lab(10)
+    wall_list, _, _ = actually_gen_lab(10)
     for w in wall_list:
         if SHOW_DEPTH:
-            pygame.draw.line(display, COLORS[w.depth], (w.x1 * tile_size, w.y1 * tile_size), (w.x2 * tile_size, w.y2 * tile_size), 3)
+            pygame.draw.line(display, COLORS[w.depth], (w.x1 * tile_size, w.y1 * tile_size), (w.x2 * tile_size, w.y2 * tile_size), 5)
         else:
-            pygame.draw.line(display, (0, 0, 255), (w.x1 * tile_size, w.y1 * tile_size), (w.x2 * tile_size, w.y2 * tile_size), 3)
+            pygame.draw.line(display, (0, 0, 255), (w.x1 * tile_size, w.y1 * tile_size), (w.x2 * tile_size, w.y2 * tile_size), 5)
 
     pygame.display.flip()
 
