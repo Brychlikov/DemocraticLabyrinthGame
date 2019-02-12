@@ -132,7 +132,7 @@ class LabExit(Tile):
 
     def on_step(self, group):
         logger.debug("Labyrinth finished")
-        group.game.text_display.print(f"Wyszliście z labiryntu w {self.game.turns} tur!")
+        group.game.text_display.print(f"Wyszliście z labiryntu w {group.game.turns} tur!")
         group.game.labyrinth_finished = True
 
 

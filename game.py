@@ -138,7 +138,7 @@ class Game:
 
         self.squad = group.Squad(settings, self)
         self.minotaur = minotaur.Minotaur(settings, self)
-        self.minotaur.pos = (15, 15)
+        self.minotaur.pos = (1, 10)
 
         self.all_sprites = pygame.sprite.Group()
         self.all_sprites.add(self.squad)
@@ -151,11 +151,12 @@ class Game:
         self.content_gens.append(contentGen.MinotaurContectGen(settings, self))
         tiles.Tile.groups.append(self.all_sprites)
 
-        for i in range(100):
+        for i in range(15):
             self.add_special_tile()
 
         self.wall_list, entrance_wall, exit_wall = labgen.actually_gen_lab(settings.height)
         self.squad.pos = entrance_wall.x1, entrance_wall.y1
+        self.squad.pos = (0, 10)
 
         exit_tile = tiles.LabExit(self.settings, exit_wall.x1 - 1, exit_wall.y1)
         self.board[exit_wall.y1][exit_wall.x1 - 1] = exit_tile
@@ -304,7 +305,7 @@ class Game:
         result = []
         for p in self.squad.player_list:
             result.append((p, sum((g.progress / g.aim + int(g.achieved) for g in p.goals))))
-        sorted(result, key=lambda i: i[1])
+        result.sort(key=lambda i: i[1] * -1)
         return result
 
     def loop(self):
