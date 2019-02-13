@@ -51,12 +51,13 @@ def wall_graph(wall_list):
 
 @dataclass
 class Settings:
+    """Class containing global settings for the game"""
     tile_size: int
     width: int
     height: int
     background_color: pygame.Color = pygame.Color(0, 0, 0)
     vision_radius: int = 150
-    move_time: float = 1
+    move_time: float = 1  # Time in seconds between ticks (moves)
     mute: bool = False
 
     @property
@@ -66,6 +67,12 @@ class Settings:
 
 class DelayedCall(Thread):
     def __init__(self, t, func, args=None, kwargs=None):
+        """
+        :param t: delay time in seconds
+        :param func: function to call
+        :param args: args to function
+        :param kwargs: kwargs to function
+        """
         super(DelayedCall, self).__init__()
         self.should_stop = False
         self.t = t
@@ -86,27 +93,32 @@ class DelayedCall(Thread):
             self.func(*self.f_args, **self.f_kwargs)
 
     def cancel(self):
+        """Send exit signal to thread"""
         logger.debug("Delayed call got cancellation signal")
         self._exit_early = True
 
 class Game:
+    """Main game object"""
     def __init__(self, settings: Settings):
         self.settings = settings
 
         self.board = []
-        self.non_integral_tiles = 0
-        self.orphans = []
+
+        self.orphans = []  # Tile objects which for some reason are not in self.board
+
+        # fill board with empty tiles
         for i in range(settings.width):
             row = []
             for j in range(settings.height):
                 row.append(tiles.Tile(settings, i, j))
             self.board.append(row)
 
-        self.ticks = 0.0
+        self.ticks = 0.0  # game clock. Increments by 1 every turn. Player moves on 1, 2, 3.. etc. Minotaur on 1.5, 2.5, 3.5.. etc.
+        # This should be OK in terms of floating point math
+
         self.last_tick_time = time.time()
         self.labyrinth_finished = False
 
-        self.frames_until_move = 0
         self.last_player_move = 0
         self.last_minotaur_move = -0.5
 
@@ -116,24 +128,42 @@ class Game:
         self.background = make_background(pygame.image.load("assets/tile.png"), self.settings.resolution)
         self.display: pygame.Surface = None
 
-        # TODO do something with it
-        # maybe separate init() is useless?
+        ### PYGAME INITS
         pygame.init()
         pygame.font.init()
         pygame.mixer.init()
+        ###
 
+        self.running = True
+
+        ### SERVER INITS
+        self.server_queue = Queue() # main queue to receive movements
+        self.new_player_queue = Queue()  # queue to receive new player objects
+        self.goal_queue = Queue()  # queue to send new goals
+        self.info_queue = Queue()  # queue to send gametime info
+        self.server = server.Server("0.0.0.0", 6666, 6665, self.server_queue, self.new_player_queue, self.goal_queue, self.info_queue)
+        self.server.start()
+        ###
+
+        unscaled = pygame.image.load("assets/wall_horizontal.png").convert_alpha()
+        self.wall_horizontal = pygame.transform.scale(unscaled, (self.settings.tile_size * 7 // 6, self.settings.tile_size))
+        unscaled = pygame.image.load("assets/wall_vertical.png").convert_alpha()
+        self.wall_vertical = pygame.transform.scale(unscaled, (self.settings.tile_size // 6, self.settings.tile_size))
+
+        # prepare sound
+        self.sound_bank = {}
+        self.make_sound_bank()
+        c = pygame.mixer.Channel(AMBIENT_CHANNEL)
+        if not self.settings.mute:
+            c.play(self.sound_bank["ambient"], loops=-1)
         self.unmute_thread: DelayedCall = None
+        #
+
+
         self.display = pygame.display.set_mode((self.settings.resolution[0] + 300, self.settings.resolution[1]))
         self.display.set_colorkey(self.settings.background_color)
 
         self.clock = pygame.time.Clock()
-        self.server = None
-        self.server_queue = None
-        self.new_player_queue = None
-        self.goal_queue = None
-        self.info_queue = None
-
-        self.sound_bank = {}
 
         self.text_display = textDisplay.TextDisplay((300, 300), "dejavu", 24)
         self.text_display.print("Test")
@@ -162,29 +192,8 @@ class Game:
         exit_tile = tiles.LabExit(self.settings, exit_wall.x1 - 1, exit_wall.y1)
         self.board[exit_wall.y1][exit_wall.x1 - 1] = exit_tile
 
-        self.wall_graph = wall_graph(self.wall_list)
-
-        self.nrwg = minotaur.non_retarded_wall_graph(self.wall_graph, settings)
-
-    def init(self):
-        self.running = True
-
-        self.server_queue = Queue()
-        self.new_player_queue = Queue()
-        self.goal_queue = Queue()
-        self.info_queue = Queue()
-        self.squad.server_queue = self.server_queue
-        self.server = server.Server("0.0.0.0", 6666, 6665, self.server_queue, self.new_player_queue, self.goal_queue, self.info_queue)
-        self.server.start()
-        unscaled = pygame.image.load("assets/wall_horizontal.png").convert_alpha()
-        self.wall_horizontal = pygame.transform.scale(unscaled, (self.settings.tile_size * 7 // 6, self.settings.tile_size))
-        unscaled = pygame.image.load("assets/wall_vertical.png").convert_alpha()
-        self.wall_vertical = pygame.transform.scale(unscaled, (self.settings.tile_size // 6, self.settings.tile_size))
-
-        self.make_sound_bank()
-        c = pygame.mixer.Channel(AMBIENT_CHANNEL)
-        if not self.settings.mute:
-            c.play(self.sound_bank["ambient"], loops=-1)
+        self.wall_graph = wall_graph(self.wall_list)  # Graph representing nodes blocked by walls
+        self.nrwg = minotaur.non_retarded_wall_graph(self.wall_graph, settings)  # Graph representing nodes accessible
 
     @property
     def turns(self):
@@ -198,6 +207,12 @@ class Game:
         self.sound_bank["ambient"] = pygame.mixer.Sound("sounds/main_theme.ogg")
 
     def play_sound(self, name, chan_id):
+        """
+        Plays given sound. Handles silencing ambient and bringing it back to normal
+        :param name: key if self.sound_bank of sound to play
+        :param chan_id: channel id
+        :return:
+        """
         if self.settings.mute:
             return
         if self.unmute_thread is not None and self.unmute_thread.isAlive():
@@ -213,9 +228,8 @@ class Game:
         self.unmute_thread = DelayedCall(sound.get_length(), ambient_chan.set_volume, args=(1,))
         self.unmute_thread.start()
 
-
     def add_special_tile(self):
-        pre_add_leaked_tiles = self.non_integral_tiles
+        """Generate treasure/trap from randomly selected ContentGen"""
         gen_list = [g for g in self.content_gens if g.generates_tiles]
         for gen in gen_list:
             if gen.tiles_generated == 0:
@@ -231,6 +245,7 @@ class Game:
         self.board[t.pos_y][t.pos_x] = t
 
     def make_vision_mask(self):
+        """Generate 2d array of booleans, where true = player has vision of given pixel"""
         result = pygame.Surface(self.settings.resolution)
         result.fill((0, 0, 0))
         position = int((self.squad.pos_x + 0.5) * self.settings.tile_size), int((self.squad.pos_y + 0.5) * self.settings.tile_size)
@@ -239,9 +254,12 @@ class Game:
         return to_return
 
     def draw_frame(self):
+        # clean after previous frame
         self.main_surf.blit(self.background, (0, 0))
 
         # wall drawing
+        # Iterates over wall list twice. Firs over horizontal, then over vertical in order to
+        # make vertical overlap horizontal ones
         for wall in self.wall_list:
             point1 = (wall.x1 * self.settings.tile_size-2, wall.y1 * self.settings.tile_size - 2)
             if wall.y1 == wall.y2:
@@ -251,15 +269,15 @@ class Game:
             if wall.x1 == wall.x2:
                 self.main_surf.blit(self.wall_vertical, point1)
 
-            # pygame.draw.line(self.main_surf, self.settings.wall_color, point1, point2, 3)
         self.all_sprites.draw(self.main_surf)
+        # draw arrows indicating individual player decisions
         self.squad.make_decision_arrows(self.main_surf)
 
-        mask = self.make_vision_mask() == False
+        mask = self.make_vision_mask() == False  # Invert mask → True = player has NO vision
         array_view = pygame.surfarray.pixels3d(self.main_surf)
+        # black out pixels with no vision
         array_view[mask] = np.array(self.settings.background_color)[:3]
-        del array_view
-        del mask
+        del array_view  # delete array view of main surface to allow it to be drawn
 
         self.display.blit(self.main_surf, (0, 0))
         self.display.blit(self.text_display.draw_queue(), (self.settings.resolution[0], 0))
@@ -277,8 +295,11 @@ class Game:
             self.ticks += 0.5
 
     def check_board_integrity(self, log=False):
+        """
+        Check for orphans in board
+        :param log: If true, will log every integrity loss
+        """
         lost = False
-        self.non_integral_tiles = 0
         del self.orphans
         self.orphans = []
         for s in self.all_sprites:
@@ -287,19 +308,21 @@ class Game:
                     logger.warning(f"Board lost integrity on coords {s.pos} on tick {self.ticks}")
                 lost = True
                 self.orphans.append(s)
-                self.non_integral_tiles += 1
         return lost
 
     def kill_the_orphans(self):
+        """...And kill them"""
         for s in self.orphans:
             s.kill()
 
     def update_logic(self):
 
+        # Handle adding new player
         if not self.new_player_queue.empty():
             new_player: group.Player = self.new_player_queue.get()
             goal_str_list = []
             gen_list = random.sample([cg for cg in self.content_gens if cg.generates_goals], 3)
+            # For every chosen ContentGen, add new goal to new player
             for gen in gen_list:
                 goal = gen.gen_goal(new_player)
                 goal_str_list.append(goal.description)
@@ -311,10 +334,10 @@ class Game:
             for t in known_traps:
                 t.add_aware_player(new_player)
             self.squad.player_list.append(new_player)
-            while not self.goal_queue.empty():
-                time.sleep(0.001)
 
         self.all_sprites.update()
+
+        # Update gametime info
         self.info_queue.put([p.to_dict() for p in self.squad.player_list])
 
         if self.squad.dead or self.labyrinth_finished:
