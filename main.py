@@ -21,7 +21,6 @@ if __name__ == '__main__':
         pass
     settings = Settings(30, 20, 20, move_time=0.5, vision_radius=120, mute=mute)
     game = Game(settings)
-    game.init()
     try:
         game.loop()
     except KeyboardInterrupt:

@@ -100,7 +100,19 @@ class DelayedCall(Thread):
 class Game:
     """Main game object"""
     def __init__(self, settings: Settings):
+
+        ### PYGAME INITS
+        pygame.init()
+        pygame.font.init()
+        pygame.mixer.init()
+        ###
+
         self.settings = settings
+
+        self.main_surf = pygame.Surface(self.settings.resolution)
+        self.background = make_background(pygame.image.load("assets/tile.png"), self.settings.resolution)
+        self.display = pygame.display.set_mode((self.settings.resolution[0] + 300, self.settings.resolution[1]))
+        self.display.set_colorkey(self.settings.background_color)
 
         self.board = []
 
@@ -124,15 +136,6 @@ class Game:
 
         self.running = False
 
-        self.main_surf = pygame.Surface(self.settings.resolution)
-        self.background = make_background(pygame.image.load("assets/tile.png"), self.settings.resolution)
-        self.display: pygame.Surface = None
-
-        ### PYGAME INITS
-        pygame.init()
-        pygame.font.init()
-        pygame.mixer.init()
-        ###
 
         self.running = True
 
@@ -160,8 +163,6 @@ class Game:
         #
 
 
-        self.display = pygame.display.set_mode((self.settings.resolution[0] + 300, self.settings.resolution[1]))
-        self.display.set_colorkey(self.settings.background_color)
 
         self.clock = pygame.time.Clock()
 
