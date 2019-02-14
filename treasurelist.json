@@ -40,11 +40,5 @@
     "friendly_name":  "Dywan ze złotego runa",
     "color": "gold",
     "special": false
-  },
-  {
-    "name": "PandoraBox",
-    "friendly_name": "Puszka Agaty",
-    "color": "gold",
-    "special": true
   }
 ]
