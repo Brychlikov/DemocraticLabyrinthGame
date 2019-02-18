@@ -184,7 +184,7 @@ class Game:
         self.content_gens.append(contentGen.WeaponContentGen(settings, self))
         self.content_gens.append(contentGen.MinotaurContectGen(settings, self))
 
-        for i in range(15):
+        for i in range(150):
             self.add_special_tile()
 
         self.wall_list, entrance_wall, exit_wall = labgen.actually_gen_lab(settings.height)
@@ -335,6 +335,8 @@ class Game:
             for t in known_traps:
                 t.add_aware_player(new_player)
             self.squad.player_list.append(new_player)
+
+            _ = self.server_queue.get()  # Force full cycle of server loop
 
         self.all_sprites.update()
 
