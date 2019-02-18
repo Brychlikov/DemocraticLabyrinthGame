@@ -210,7 +210,7 @@ class Squad(pygame.sprite.Sprite):
         self.direction = Direction.from_single_int_direction(best_dir)
 
     def update_player_decisions(self):
-        decisions = self.server_queue.get()
+        decisions = self.game.server_queue.get()
         for player in self.player_list:
             player.direction = Direction.from_single_int_direction(decisions[player.id])
 
